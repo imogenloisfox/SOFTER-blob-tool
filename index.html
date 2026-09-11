@@ -528,7 +528,7 @@
         </div>
         <div class="row">
           <span>Grid spacing</span>
-          <input type="range" id="spacingSlider" min="20" max="80" value="40" step="2">
+          <input type="range" id="spacingSlider" min="12" max="500" value="40" step="2">
         </div>
         <div class="row">
           <span>Node size</span>
@@ -623,15 +623,6 @@
           <select id="fontSelect" class="select-input">
             <option value="Alte Haas Grotesk">Alte Haas Grotesk</option>
             <option value="DM Mono">DM Mono</option>
-            <option value="Arial">Arial</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Impact">Impact</option>
-            <option value="Comic Sans MS">Comic Sans MS</option>
-            <option value="Trebuchet MS">Trebuchet MS</option>
-          
             <option value="Marund">Marund</option>
             <option value="Bold Trial">Bold Trial</option>
             <option value="Acid Grotesk">Acid Grotesk</option>
@@ -1034,6 +1025,9 @@
   canvas.addEventListener('contextmenu', e=> e.preventDefault());
 
   canvas.addEventListener('pointerdown', e=>{
+    // Only the primary button draws/erases and the secondary button pans. Middle-click
+    // previously created an accidental node.
+    if(e.button !== 0 && e.button !== 2) return;
     dragging = true;
     canvas.setPointerCapture(e.pointerId);
     if(e.button === 2){
@@ -1060,11 +1054,13 @@
       handlePointer(e);
     }
   });
-  canvas.addEventListener('pointerup', ()=>{
+  function endPointer(){
     dragging = false; lastCell = null; panLast = null;
     if(dragIsPan) canvas.style.cursor = 'crosshair';
     dragIsPan = false;
-  });
+  }
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
 
   // ---------- wheel: trackpad two-finger pan, scroll/pinch to zoom ----------
   // Browsers can't reliably tell a mouse wheel from a trackpad gesture, so this uses the
@@ -1340,7 +1336,16 @@ ${wrapped}
   fileInput.addEventListener('change', e=>{
     const file = e.target.files[0];
     if(!file) return;
+    if(file.type && !file.type.startsWith('image/')){
+      fileLabel.textContent = 'Please choose an image file.';
+      convertBtn.disabled = true;
+      return;
+    }
     const reader = new FileReader();
+    reader.onerror = ()=>{
+      fileLabel.textContent = "Couldn't read that image file.";
+      convertBtn.disabled = true;
+    };
     reader.onload = ev=>{
       const img = new Image();
       img.onload = ()=>{
@@ -1357,6 +1362,10 @@ ${wrapped}
         fileLabel.appendChild(name);
         convertBtn.disabled = false;
       };
+      img.onerror = ()=>{
+        fileLabel.textContent = "Couldn't load that image file.";
+        convertBtn.disabled = true;
+      };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
@@ -1365,7 +1374,7 @@ ${wrapped}
   // ---------- text upload / custom fonts ----------
   textInput.addEventListener('input', ()=>{
     sourceIsText = textInput.value.trim().length > 0;
-    if(sourceIsText) convertBtn.disabled = false;
+    convertBtn.disabled = !hasConversionSource();
     scheduleThreshPreview();
   });
   fontSelect.addEventListener('change', ()=>{ if(sourceIsText) scheduleThreshPreview(); });
@@ -1393,10 +1402,23 @@ ${wrapped}
     }
   });
 
+  const TEXT_FONT_SIZE = 220;
+
+  async function loadTextFont(fontFamily){
+    // Wait for the selected bundled face before measuring or drawing. Without this,
+    // canvas can render a fallback on the first conversion and only show the real font later.
+    try{
+      const loaded = await document.fonts.load(`400 ${TEXT_FONT_SIZE}px "${fontFamily}"`);
+      return loaded.length > 0;
+    } catch(err){
+      return false;
+    }
+  }
+
   function renderTextToCanvas(text, fontFamily){
-    const size = 220;
+    const size = TEXT_FONT_SIZE;
     const measure = document.createElement('canvas').getContext('2d');
-    measure.font = `700 ${size}px "${fontFamily}"`;
+    measure.font = `400 ${size}px "${fontFamily}"`;
     const w = Math.max(1, Math.ceil(measure.measureText(text).width) + Math.round(size*0.5));
     const h = Math.round(size*1.5);
     const tc = document.createElement('canvas');
@@ -1405,11 +1427,15 @@ ${wrapped}
     tctx.fillStyle = '#ffffff';
     tctx.fillRect(0,0,w,h);
     tctx.fillStyle = '#000000';
-    tctx.font = `700 ${size}px "${fontFamily}"`;
+    tctx.font = `400 ${size}px "${fontFamily}"`;
     tctx.textBaseline = 'middle';
     tctx.textAlign = 'left';
     tctx.fillText(text, Math.round(size*0.25), h/2);
     return tc;
+  }
+
+  function hasConversionSource(){
+    return (sourceIsText && textInput.value.trim()) || lastUploadedImage;
   }
 
   function getConversionSource(){
@@ -1419,7 +1445,14 @@ ${wrapped}
     return lastUploadedImage;
   }
 
-  function convertImageToBlobs(){
+  async function convertImageToBlobs(){
+    if(sourceIsText && textInput.value.trim()){
+      const loaded = await loadTextFont(fontSelect.value);
+      if(!loaded){
+        fontUploadStatus.textContent = "That font couldn't be loaded.";
+        return;
+      }
+    }
     const img = getConversionSource();
     if(!img) return;
 
@@ -1461,7 +1494,7 @@ ${wrapped}
   }
 
   convertBtn.addEventListener('click', ()=>{
-    if(!getConversionSource()) return;
+    if(!hasConversionSource()) return;
     convertImageToBlobs();
   });
 
@@ -1471,7 +1504,7 @@ ${wrapped}
   // fast drag stays smooth.
   let threshPreviewPending = false;
   function scheduleThreshPreview(){
-    if(!getConversionSource()) return;
+    if(!hasConversionSource()) return;
     if(threshPreviewPending) return;
     threshPreviewPending = true;
     requestAnimationFrame(()=>{
