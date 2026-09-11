@@ -675,6 +675,7 @@
   let blurPx = 0;
   let showGrid = true;
   let mode = 'draw';
+  let wholeResizeScale = 1;
 
   let camX = 0;
   let camY = 0;
@@ -746,7 +747,7 @@
     // resized afterward (Resize mode) without every other circle jumping too.
     // strokeId records which continuous drag placed this node - used only to decide which
     // OTHER nodes it's allowed to smooth against at render time (see expandForMerge).
-    nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:spacing*radiusMult, strokeId:currentStrokeId});
+    nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:spacing*radiusMult*wholeResizeScale, strokeId:currentStrokeId});
     return true;
   }
   function removeNode(i,j){
@@ -980,7 +981,7 @@
       const {i,j} = snapToGrid(previewPos.x, previewPos.y);
       const c = cellWorld(i,j);
       const s = worldToScreen(c.wx, c.wy);
-      const r = spacing * radiusMult * zoom;
+      const r = spacing * radiusMult * wholeResizeScale * zoom;
       ctx.save();
       ctx.globalAlpha = 0.55;
       ctx.beginPath();
@@ -1235,11 +1236,8 @@ ${wrapped}
     render();
   });
 
-  // Resize: scales the WHOLE drawing (every circle's size and its position, relative to
-  // the drawing's own centre) rather than any single circle. The slider itself always
-  // reads back to 100 once you let go - each drag applies a fresh relative nudge from
-  // wherever the drawing currently is, so the same bounded 50-150% slider can keep
-  // scaling up or down indefinitely rather than hitting a hard ceiling.
+  // Resize is a normal, persistent percentage control. Its value is also applied to
+  // newly converted text/images, so changing the source does not discard the scale.
   function scaleWholeDrawing(factor){
     // circle SIZE only - positions stay exactly where they were placed on the grid.
     // An earlier version also scaled position relative to the drawing's centre, which
@@ -1251,16 +1249,12 @@ ${wrapped}
     }
   }
   const wholeResizeSlider = document.getElementById('wholeResizeSlider');
-  let lastResizeSliderValue = 100;
   wholeResizeSlider.addEventListener('input', e=>{
     const val = +e.target.value;
-    scaleWholeDrawing(val / lastResizeSliderValue);
-    lastResizeSliderValue = val;
+    const nextScale = val / 100;
+    scaleWholeDrawing(nextScale / wholeResizeScale);
+    wholeResizeScale = nextScale;
     render();
-  });
-  wholeResizeSlider.addEventListener('pointerup', ()=>{
-    wholeResizeSlider.value = 100;
-    lastResizeSliderValue = 100;
   });
 
   document.getElementById('blurSlider').addEventListener('input', e=>{
@@ -1486,7 +1480,7 @@ ${wrapped}
           nodeSet.add(key);
           const c = cellWorld(i,j);
           const s = worldToScreen(c.wx, c.wy);
-          nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:spacing*radiusMult, strokeId:null});
+          nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:spacing*radiusMult*wholeResizeScale, strokeId:null});
         }
       }
     }
