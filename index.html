@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOFTER Tools</title>
+<title>SOFTER — blob grid system</title>
 <link rel="icon" type="image/png" href="flowersofter.png">
 <style>
 @font-face{
@@ -686,7 +686,7 @@
       </div>
 
       <div class="card" id="colourCard">
-        <h2>Appearance</h2>
+        <h2>Colour</h2>
         <div class="row" style="margin-bottom:8px;">
           <span>Style</span>
           <div class="seg" id="mergeStyleSeg">
@@ -741,7 +741,6 @@
         <button class="iconbtn" id="fontUploadBtn" style="width:100%; margin-top:6px;">Upload a font</button>
         <input type="file" id="fontUpload" accept=".ttf,.otf,.woff,.woff2" style="display:none;">
         <div class="hint" id="fontUploadStatus" style="margin-top:3px;"></div>
-        <button class="full-btn secondary" id="convertBtn" disabled style="margin-top:8px;">Convert to blobs</button>
       </div>
 
       <div class="card" id="imageCard">
@@ -1480,7 +1479,6 @@ ${wrapped}
   const fileDrop = document.getElementById('fileDrop');
   const fileInput = document.getElementById('fileInput');
   const fileLabel = document.getElementById('fileLabel');
-  const convertBtn = document.getElementById('convertBtn');
   const textInput = document.getElementById('textInput');
   const fontSelect = document.getElementById('fontSelect');
   const fontUploadBtn = document.getElementById('fontUploadBtn');
@@ -1499,13 +1497,11 @@ ${wrapped}
     if(!file) return;
     if(file.type && !file.type.startsWith('image/')){
       fileLabel.textContent = 'Please choose an image file.';
-      convertBtn.disabled = true;
       return;
     }
     const reader = new FileReader();
     reader.onerror = ()=>{
       fileLabel.textContent = "Couldn't read that image file.";
-      convertBtn.disabled = true;
     };
     reader.onload = ev=>{
       const img = new Image();
@@ -1521,12 +1517,10 @@ ${wrapped}
         name.style.fontFamily = "'DM Mono', monospace";
         name.style.fontSize = '11px';
         fileLabel.appendChild(name);
-        convertBtn.disabled = false;
       };
       img.onerror = ()=>{
         fileLabel.textContent = "Couldn't load that image file.";
-        convertBtn.disabled = true;
-      };
+        };
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
@@ -1535,7 +1529,6 @@ ${wrapped}
   // ---------- text upload / custom fonts ----------
   textInput.addEventListener('input', ()=>{
     sourceIsText = textInput.value.trim().length > 0;
-    convertBtn.disabled = !hasConversionSource();
     scheduleThreshPreview();
   });
   fontSelect.addEventListener('change', ()=>{ if(sourceIsText) scheduleThreshPreview(); });
@@ -1655,10 +1648,6 @@ ${wrapped}
     render();
   }
 
-  convertBtn.addEventListener('click', ()=>{
-    if(!hasConversionSource()) return;
-    convertImageToBlobs();
-  });
 
   // live preview: once an image is loaded or text is typed, dragging the threshold (or
   // flipping invert, or changing the font) re-runs the conversion immediately so you can see
