@@ -1229,11 +1229,13 @@ ${wrapped}
   document.getElementById('spacingSlider').addEventListener('input', e=>{
     spacing = +e.target.value;
     render();
+    if(sourceIsText) scheduleThreshPreview();
   });
 
   document.getElementById('radiusSlider').addEventListener('input', e=>{
     radiusMult = (+e.target.value) / 100;
     render();
+    if(sourceIsText) scheduleThreshPreview();
   });
 
   // Resize is a normal, persistent percentage control. Its value is also applied to
