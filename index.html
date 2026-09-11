@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Softer Tools</title>
+<title>SOFTER — blob grid system</title>
 <link rel="icon" type="image/png" href="flowersofter.png">
 <style>
 @font-face{
@@ -160,7 +160,7 @@
     --line:rgba(124,124,124,0.28);
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;}
   body{
     background-color:var(--bg-light);
     background-image:url("data:image/jpeg;base64,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");
@@ -170,32 +170,39 @@
     background-attachment:fixed;
     color:var(--ink);
     font-family:'Alte Haas Grotesk', system-ui, -apple-system, sans-serif;
-    min-height:100vh;
+    height:100%;
   }
   .app{
-    max-width:1620px;
+    max-width:1800px;
     margin:0 auto;
-    padding:36px 28px 56px;
+    padding:16px 20px 18px;
     position:relative;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    box-sizing:border-box;
+    overflow:hidden;
   }
   header{
     display:flex;
     align-items:flex-end;
     justify-content:space-between;
-    gap:24px;
-    margin-bottom:28px;
+    gap:18px;
+    margin-bottom:12px;
     flex-wrap:wrap;
+    flex-shrink:0;
   }
   .brand img{
-    height:34px;
+    height:26px;
     display:block;
-    margin-bottom:10px;
+    margin-bottom:5px;
   }
   .brand p{
     margin:0;
     color:var(--grey-mid);
-    font-size:14px;
-    max-width:52ch;
+    font-size:12px;
+    line-height:1.45;
+    max-width:60ch;
   }
   .brand p strong{
     font-weight:700;
@@ -203,9 +210,14 @@
   }
   .layout{
     display:grid;
-    grid-template-columns:1fr 300px;
-    gap:24px;
+    grid-template-columns:minmax(0,1fr) 500px;
+    gap:16px;
     align-items:stretch;
+    flex:1;
+    min-height:0;
+  }
+  @media (max-width:1180px){
+    .layout{grid-template-columns:minmax(0,1fr) 300px;}
   }
   @media (max-width:880px){
     .layout{grid-template-columns:1fr;}
@@ -213,18 +225,21 @@
   .stage-card{
     background:var(--panel);
     border:1px solid var(--line);
-    border-radius:20px;
-    padding:18px;
+    border-radius:18px;
+    padding:14px;
     box-shadow:0 1px 3px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.04);
     display:flex;
     flex-direction:column;
+    min-height:0;
+    overflow:hidden;
   }
   .canvas-wrap{
     flex:1;
-    min-height:420px;
+    min-height:0;
     display:flex;
     align-items:center;
     justify-content:center;
+    overflow:hidden;
   }
   .toolbar{
     display:flex;
@@ -290,20 +305,36 @@
     flex-wrap:wrap;
   }
   .panel{
-    display:flex;
-    flex-direction:column;
-    gap:16px;
+    min-height:0;
+    column-count:2;
+    column-gap:12px;
+    /* safety net only: on a very short window the controls scroll inside this column
+       rather than the whole page scrolling, so the canvas always stays in view. */
+    overflow-y:auto;
+    overflow-x:hidden;
+  }
+  .panel .card{
+    break-inside:avoid;
+    -webkit-column-break-inside:avoid;
+    page-break-inside:avoid;
+    margin-bottom:12px;
+    display:inline-block;
+    width:100%;
+    box-sizing:border-box;
+  }
+  @media (max-width:1180px){
+    .panel{column-count:1;}
   }
   .card{
     background:var(--panel);
     border:1px solid var(--line);
-    border-radius:16px;
-    padding:16px;
+    border-radius:14px;
+    padding:12px;
     box-shadow:0 1px 3px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.04);
   }
   .card h2{
-    font-size:12px;
-    margin:0 0 12px;
+    font-size:11px;
+    margin:0 0 9px;
     font-weight:700;
     color:var(--ink);
   }
@@ -312,8 +343,8 @@
     align-items:center;
     justify-content:space-between;
     gap:10px;
-    margin-bottom:12px;
-    font-size:13px;
+    margin-bottom:9px;
+    font-size:12px;
     color:var(--grey-mid);
   }
   .row:last-child{ margin-bottom:0; }
@@ -460,29 +491,6 @@
     line-height:1.5;
     margin-top:2px;
   }
-  .combo-row{
-    display:flex;
-    gap:14px;
-    flex-wrap:wrap;
-  }
-  .combo-btn{
-    display:inline-flex;
-    align-items:center;
-    border:1px solid transparent;
-    background:transparent;
-    cursor:pointer;
-    padding:4px;
-    border-radius:14px;
-  }
-  .combo-btn:hover{ background:rgba(124,124,124,0.10); }
-  .combo-btn.active{ border-color:var(--ink); }
-  .combo-dot{
-    width:32px;
-    height:32px;
-    border-radius:50%;
-    display:inline-block;
-  }
-  .combo-dot + .combo-dot{ margin-left:-13px; }
 </style>
 </head>
 <body>
@@ -542,16 +550,13 @@
       </div>
 
       <div class="card">
-        <h2>Fill</h2>
+        <h2>Colour</h2>
         <div class="row" style="margin-bottom:10px;">
           <span>Style</span>
           <div class="seg" id="mergeStyleSeg">
             <button data-style="circles" class="active">Circles</button>
             <button data-style="blend">Blend</button>
           </div>
-        </div>
-        <div class="row" style="margin-bottom:10px;">
-          <label class="check"><input type="checkbox" id="fillToggle" checked> Fill</label>
         </div>
         <div class="swatches" id="fillSwatches">
           <button class="swatch active" data-color="#FFCCEE" style="background:#FFCCEE"></button>
@@ -561,42 +566,6 @@
           <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
           <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
         </div>
-
-        <hr class="div">
-
-        <div class="row" style="margin-bottom:10px;">
-          <label class="check"><input type="checkbox" id="strokeToggle"> Stroke</label>
-        </div>
-        <div class="swatches" id="strokeSwatches">
-          <button class="swatch" data-color="#FFCCEE" style="background:#FFCCEE"></button>
-          <button class="swatch" data-color="#FFA4E0" style="background:#FFA4E0"></button>
-          <button class="swatch active" data-color="#FF3B0F" style="background:#FF3B0F"></button>
-          <button class="swatch" data-color="#FFF5FC" style="background:#FFF5FC"></button>
-          <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
-          <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
-        </div>
-        <div class="row" style="margin-top:10px;">
-          <span>Stroke width</span>
-          <input type="range" id="strokeWidthSlider" min="4" max="120" value="34" step="2">
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Combinations</h2>
-        <div class="combo-row" id="comboRow">
-          <button class="combo-btn" data-fill="#FFA4E0" data-stroke="#FF3B0F">
-            <span class="combo-dot" style="background:#FFA4E0"></span><span class="combo-dot" style="background:#FF3B0F"></span>
-          </button>
-          <button class="combo-btn" data-fill="#FFA4E0" data-stroke="#EFEFEF">
-            <span class="combo-dot" style="background:#FFA4E0"></span><span class="combo-dot" style="background:#EFEFEF"></span>
-          </button>
-          <button class="combo-btn active" data-fill="#FFCCEE" data-stroke="#FF3B0F">
-            <span class="combo-dot" style="background:#FFCCEE"></span><span class="combo-dot" style="background:#FF3B0F"></span>
-          </button>
-          <button class="combo-btn" data-fill="#FFF5FC" data-stroke="#FF3B0F">
-            <span class="combo-dot" style="background:#FFF5FC"></span><span class="combo-dot" style="background:#FF3B0F"></span>
-          </button>
-        </div>
       </div>
 
       <div class="card">
@@ -605,6 +574,7 @@
           <span>Blur</span>
           <input type="range" id="blurSlider" min="0" max="40" value="0" step="1">
         </div>
+        <div class="hint">At 0 the SVG exports as pure vector paths. Any blur above 0 is a soft raster effect, so it exports as an SVG filter and some apps will rasterise it.</div>
       </div>
 
       <div class="card">
@@ -668,11 +638,7 @@
   let gridPattern = 'square'; // 'square' | 'hex'
   let mergeStyle = 'circles'; // 'circles' (individual unattached circles, default) | 'blend' (metaball merge)
   let radiusMult = 0.65;
-  let fillOn = true;
-  let strokeOn = false;
   let fillColor = '#FFCCEE';
-  let strokeColor = '#FF3B0F';
-  let strokeWidth = 34;
   let blurPx = 0;
   let showGrid = true;
   let mode = 'draw';
@@ -853,86 +819,39 @@
   }
 
   function render(){
-    const strokeWidthPx = strokeWidth * 0.4 * zoom;
-
     if(nodeList.length){
       // screen-space radius per node (each node's own world radius, scaled by current zoom)
       const circlePts = expandForMerge(nodeList, spacing*zoom*1.5)
         .map(n => ({x:n.x, y:n.y, r:n.r*zoom}));
 
       if(mergeStyle === 'circles'){
-        // each node drawn as its own independent circle (stroke ring behind, fill on top),
-        // simply layered with normal compositing - no field/threshold merge at all, so
-        // every node keeps its own visible outline instead of dissolving into one shape.
+        // each node drawn as its own independent filled circle, simply layered with normal
+        // compositing - no field/threshold merge at all, so every node keeps its own edge
+        // instead of dissolving into one shape.
         offCtx.setTransform(1,0,0,1,0,0);
         offCtx.clearRect(0,0,W,H);
         offCtx.globalCompositeOperation = 'source-over';
+        offCtx.fillStyle = fillColor;
         for(const n of nodeList){
-          const r = n.r*zoom;
-          if(strokeOn){
-            offCtx.beginPath();
-            offCtx.arc(n.x, n.y, r+strokeWidthPx, 0, Math.PI*2);
-            offCtx.fillStyle = strokeColor;
-            offCtx.fill();
-          }
-          if(fillOn){
-            offCtx.beginPath();
-            offCtx.arc(n.x, n.y, r, 0, Math.PI*2);
-            offCtx.fillStyle = fillColor;
-            offCtx.fill();
-          } else if(strokeOn){
-            offCtx.save();
-            offCtx.globalCompositeOperation = 'destination-out';
-            offCtx.beginPath();
-            offCtx.arc(n.x, n.y, r, 0, Math.PI*2);
-            offCtx.fillStyle = 'rgba(0,0,0,1)';
-            offCtx.fill();
-            offCtx.restore();
-          }
+          offCtx.beginPath();
+          offCtx.arc(n.x, n.y, n.r*zoom, 0, Math.PI*2);
+          offCtx.fill();
         }
       } else {
-      // stroke ring: dilate each node's own radius geometrically (same technique as the
-      // SVG export) rather than reading a thin iso-band off one field - a thin alpha band
-      // aliases into a dashed/broken line, a second dilated pass gives a clean solid ring.
-      let outerData = null;
-      if(strokeOn){
-        const outerPts = circlePts.map(n => ({x:n.x, y:n.y, r:n.r+strokeWidthPx}));
-        outerData = buildField(outerPts).data;
-      }
       const innerImg = buildField(circlePts);
       const data = innerImg.data;
       const [fr,fg,fb] = hexToRgb(fillColor);
-      const [sr,sg,sb] = hexToRgb(strokeColor);
 
-      // anti-aliased compositing: instead of a hard 0/255 cutoff at FILL_T (which stair-steps
-      // on a raster canvas), fade each edge smoothly over a small band, then alpha-composite
-      // fill over stroke properly so both the outer edge and the pink/red seam are soft.
+      // anti-aliased edge: instead of a hard 0/255 cutoff at FILL_T (which stair-steps on a
+      // raster canvas), fade the edge smoothly over a small band.
       const AA = 6;
       for(let p=0; p<data.length; p+=4){
-        const aIn = data[p+3];
-        let rA=0, gA=0, bA=0, alphaA=0;
-
-        if(strokeOn){
-          const covOuter = smoothstep(FILL_T-AA, FILL_T+AA, outerData[p+3]);
-          if(covOuter > 0){
-            rA = sr*covOuter; gA = sg*covOuter; bA = sb*covOuter; alphaA = covOuter;
-          }
-        }
-        if(fillOn){
-          const covInner = smoothstep(FILL_T-AA, FILL_T+AA, aIn);
-          if(covInner > 0){
-            rA = fr*covInner + rA*(1-covInner);
-            gA = fg*covInner + gA*(1-covInner);
-            bA = fb*covInner + bA*(1-covInner);
-            alphaA = covInner + alphaA*(1-covInner);
-          }
-        }
-
-        if(alphaA > 0.002){
-          data[p]   = rA/alphaA;
-          data[p+1] = gA/alphaA;
-          data[p+2] = bA/alphaA;
-          data[p+3] = Math.round(alphaA*255);
+        const cov = smoothstep(FILL_T-AA, FILL_T+AA, data[p+3]);
+        if(cov > 0.002){
+          data[p]   = fr;
+          data[p+1] = fg;
+          data[p+2] = fb;
+          data[p+3] = Math.round(cov*255);
         } else {
           data[p+3] = 0;
         }
@@ -987,7 +906,7 @@
       ctx.globalAlpha = 0.55;
       ctx.beginPath();
       ctx.arc(s.x, s.y, r, 0, Math.PI*2);
-      ctx.strokeStyle = mode === 'erase' ? '#7C7C7C' : strokeColor;
+      ctx.strokeStyle = mode === 'erase' ? '#7C7C7C' : fillColor;
       ctx.lineWidth = 2;
       ctx.setLineDash([5,4]);
       ctx.stroke();
@@ -1021,6 +940,7 @@
     lastCell = key;
     if(mode === 'draw'){ addNode(i,j); }
     else { removeNode(i,j); }
+    canvasFromConversion = false;
     render();
   }
 
@@ -1128,6 +1048,7 @@
 
   document.getElementById('clearBtn').addEventListener('click', ()=>{
     nodeList = []; nodeSet.clear();
+    canvasFromConversion = false;
     render();
   });
 
@@ -1145,15 +1066,171 @@
     return s;
   }
 
+  // The Blend look used to be faked in the exported SVG with a blur+contrast filter. That
+  // renders differently in every app - Illustrator drops the filter (so you get loose
+  // circles, no blend at all) and Figma rasterises it (so it lands blurry). Instead we
+  // trace the real outline of the same scalar field the canvas thresholds, and emit it as
+  // an ordinary <path>. No filters, so every app draws identical crisp vector geometry.
+  const FIELD_STOPS = [[0,1],[0.2,0.92],[0.4,0.71],[0.6,0.41],[0.8,0.13],[0.9,0.04],[1,0]];
+  function fieldFalloff(t){
+    if(t >= 1) return 0;
+    for(let k=1;k<FIELD_STOPS.length;k++){
+      const [t1,v1] = FIELD_STOPS[k];
+      if(t <= t1){
+        const [t0,v0] = FIELD_STOPS[k-1];
+        return v0 + (v1-v0)*((t-t0)/(t1-t0));
+      }
+    }
+    return 0;
+  }
+
+  // Ramer-Douglas-Peucker: drops points that sit within `eps` of the line they're on.
+  // The marching grid emits a vertex per cell crossing, which is far more detail than the
+  // curve needs - this trims file size a lot without moving the outline perceptibly.
+  function simplifyLoop(points, eps){
+    if(points.length < 4) return points;
+    const keep = new Uint8Array(points.length);
+    keep[0] = 1; keep[points.length-1] = 1;
+    const stack = [[0, points.length-1]];
+    while(stack.length){
+      const [a,b] = stack.pop();
+      if(b <= a+1) continue;
+      const pa = points[a], pb = points[b];
+      const dx = pb.x-pa.x, dy = pb.y-pa.y;
+      const len = Math.hypot(dx,dy);
+      let worst = -1, worstD = eps;
+      for(let i=a+1;i<b;i++){
+        const p = points[i];
+        const dist = len === 0
+          ? Math.hypot(p.x-pa.x, p.y-pa.y)
+          : Math.abs(dy*(p.x-pa.x) - dx*(p.y-pa.y))/len;
+        if(dist > worstD){ worstD = dist; worst = i; }
+      }
+      if(worst >= 0){ keep[worst] = 1; stack.push([a,worst],[worst,b]); }
+    }
+    const out = [];
+    for(let i=0;i<points.length;i++) if(keep[i]) out.push(points[i]);
+    return out;
+  }
+
+  function blendOutlinePath(pts, vbX, vbY, vbW, vbH){
+    if(!pts.length) return '';
+    let minR = Infinity, maxR = 0;
+    for(const p of pts){ if(p.r<minR) minR=p.r; if(p.r>maxR) maxR=p.r; }
+    // fine enough to keep small counters, then coarsened if the grid would get huge
+    let cell = Math.max(minR/12, Math.max(vbW,vbH)/1600);
+    const MAX_SAMPLES = 2.4e6;
+    while((vbW/cell+2)*(vbH/cell+2) > MAX_SAMPLES) cell *= 1.25;
+
+    const cols = Math.ceil(vbW/cell)+1;
+    const rows = Math.ceil(vbH/cell)+1;
+    const g = new Float32Array(cols*rows);
+
+    // splat each circle additively, exactly like the canvas 'lighter' compositing
+    for(const n of pts){
+      const i0 = Math.max(0, Math.floor((n.x-n.r-vbX)/cell));
+      const i1 = Math.min(cols-1, Math.ceil((n.x+n.r-vbX)/cell));
+      const j0 = Math.max(0, Math.floor((n.y-n.r-vbY)/cell));
+      const j1 = Math.min(rows-1, Math.ceil((n.y+n.r-vbY)/cell));
+      const invR = 1/n.r;
+      for(let j=j0;j<=j1;j++){
+        const wy = vbY + j*cell - n.y;
+        for(let i=i0;i<=i1;i++){
+          const wx = vbX + i*cell - n.x;
+          const d = Math.sqrt(wx*wx+wy*wy)*invR;
+          if(d < 1) g[j*cols+i] += 255*fieldFalloff(d);
+        }
+      }
+    }
+    for(let k=0;k<g.length;k++) if(g[k] > 255) g[k] = 255;
+
+    const px = i => vbX + i*cell;
+    const py = j => vbY + j*cell;
+    const lerp = (a,b,va,vb) => a + (b-a)*((FILL_T-va)/(vb-va));
+    const segs = [];
+    for(let j=0;j<rows-1;j++){
+      for(let i=0;i<cols-1;i++){
+        const tl=g[j*cols+i], tr=g[j*cols+i+1], br=g[(j+1)*cols+i+1], bl=g[(j+1)*cols+i];
+        let idx=0;
+        if(tl>FILL_T) idx|=8;
+        if(tr>FILL_T) idx|=4;
+        if(br>FILL_T) idx|=2;
+        if(bl>FILL_T) idx|=1;
+        if(idx===0||idx===15) continue;
+        const T=()=>({x:lerp(px(i),px(i+1),tl,tr), y:py(j)});
+        const R=()=>({x:px(i+1), y:lerp(py(j),py(j+1),tr,br)});
+        const B=()=>({x:lerp(px(i),px(i+1),bl,br), y:py(j+1)});
+        const L=()=>({x:px(i), y:lerp(py(j),py(j+1),tl,bl)});
+        const push=(a,b)=>segs.push([a,b]);
+        // directed consistently so chains stitch into closed loops
+        switch(idx){
+          case 1:  push(L(),B()); break;
+          case 2:  push(B(),R()); break;
+          case 3:  push(L(),R()); break;
+          case 4:  push(R(),T()); break;
+          case 5: {
+            const c=(tl+tr+br+bl)/4;
+            if(c>FILL_T){ push(L(),T()); push(R(),B()); }
+            else        { push(L(),B()); push(R(),T()); }
+            break;
+          }
+          case 6:  push(B(),T()); break;
+          case 7:  push(L(),T()); break;
+          case 8:  push(T(),L()); break;
+          case 9:  push(T(),B()); break;
+          case 10: {
+            const c=(tl+tr+br+bl)/4;
+            if(c>FILL_T){ push(T(),R()); push(B(),L()); }
+            else        { push(T(),L()); push(B(),R()); }
+            break;
+          }
+          case 11: push(T(),R()); break;
+          case 12: push(R(),L()); break;
+          case 13: push(R(),B()); break;
+          case 14: push(B(),L()); break;
+        }
+      }
+    }
+
+    const key = p => Math.round(p.x*100)+'_'+Math.round(p.y*100);
+    const starts = new Map();
+    segs.forEach((sg,i)=>{
+      const k = key(sg[0]);
+      if(!starts.has(k)) starts.set(k, []);
+      starts.get(k).push(i);
+    });
+    const used = new Array(segs.length).fill(false);
+    let d = '';
+    for(let i=0;i<segs.length;i++){
+      if(used[i]) continue;
+      used[i] = true;
+      const loop = [segs[i][0], segs[i][1]];
+      let cur = segs[i][1];
+      for(let guard=0; guard<segs.length+5; guard++){
+        const cands = starts.get(key(cur));
+        if(!cands) break;
+        let nxt = -1;
+        for(const c of cands){ if(!used[c]){ nxt = c; break; } }
+        if(nxt < 0) break;
+        used[nxt] = true;
+        cur = segs[nxt][1];
+        loop.push(cur);
+      }
+      if(loop.length <= 2) continue;
+      const simple = simplifyLoop(loop, cell*0.10);
+      if(simple.length <= 2) continue;
+      d += `M${simple[0].x.toFixed(2)} ${simple[0].y.toFixed(2)}`;
+      for(let k=1;k<simple.length;k++) d += `L${simple[k].x.toFixed(2)} ${simple[k].y.toFixed(2)}`;
+      d += 'Z';
+    }
+    return d;
+  }
+
   function exportSVG(){
     if(!nodeList.length){ alert('Draw something first.'); return; }
-    const strokeWidthPx = strokeWidth * 0.4;
     const maxRadius = Math.max(...nodeList.map(n=>n.r));
-    const avgRadius = nodeList.reduce((s,n)=>s+n.r,0) / nodeList.length;
-    const stdDev = (avgRadius * 0.4).toFixed(2);
-    const pad = maxRadius + strokeWidthPx + blurPx*2 + 20;
+    const pad = maxRadius + blurPx*2 + 20;
     const exportPts = expandForMerge(nodeList.map(n=>({x:n.wx, y:n.wy, r:n.r, strokeId:n.strokeId})), spacing*1.5);
-    const exportPtsOuter = exportPts.map(n => ({x:n.x, y:n.y, r:n.r+strokeWidthPx}));
 
     let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
     for(const n of nodeList){
@@ -1165,11 +1242,7 @@
     const vbX = minX - pad, vbY = minY - pad;
     const vbW = (maxX - minX) + pad*2, vbH = (maxY - minY) + pad*2;
 
-    let defs = `<filter id="goo" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="${stdDev}" result="b"/>
-      <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 14 -6" result="g"/>
-      <feComposite in="g" in2="g" operator="atop"/>
-    </filter>`;
+    let defs = '';
 
     if(blurPx > 0){
       // airbrush grain to match the canvas preview: blur first, then a turbulence-noise
@@ -1190,23 +1263,11 @@
     if(mergeStyle === 'circles'){
       // each node as its own circle, simply layered - mirrors the canvas Circles mode exactly.
       for(const n of nodeList){
-        if(fillOn && strokeOn){
-          bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${(n.r+strokeWidthPx).toFixed(1)}" fill="${strokeColor}"/>`;
-          bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillColor}"/>`;
-        } else if(fillOn){
-          bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillColor}"/>`;
-        } else if(strokeOn){
-          bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="none" stroke="${strokeColor}" stroke-width="${(strokeWidthPx*2).toFixed(1)}"/>`;
-        }
+        bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillColor}"/>`;
       }
-    } else if(strokeOn && fillOn){
-      bodyMarkup += `<g filter="url(#goo)" fill="${strokeColor}">${circlesMarkup(exportPtsOuter)}</g>`;
-      bodyMarkup += `<g filter="url(#goo)" fill="${fillColor}">${circlesMarkup(exportPts)}</g>`;
-    } else if(strokeOn && !fillOn){
-      defs += `<mask id="innerCut"><rect x="${vbX}" y="${vbY}" width="${vbW}" height="${vbH}" fill="white"/><g filter="url(#goo)" fill="black">${circlesMarkup(exportPts)}</g></mask>`;
-      bodyMarkup += `<g filter="url(#goo)" fill="${strokeColor}" mask="url(#innerCut)">${circlesMarkup(exportPtsOuter)}</g>`;
-    } else if(fillOn && !strokeOn){
-      bodyMarkup += `<g filter="url(#goo)" fill="${fillColor}">${circlesMarkup(exportPts)}</g>`;
+    } else {
+      const d = blendOutlinePath(exportPts, vbX, vbY, vbW, vbH);
+      bodyMarkup += `<path d="${d}" fill="${fillColor}" fill-rule="evenodd"/>`;
     }
 
     const wrapped = blurPx > 0 ? `<g filter="url(#postBlur)">${bodyMarkup}</g>` : bodyMarkup;
@@ -1230,13 +1291,15 @@ ${wrapped}
   document.getElementById('spacingSlider').addEventListener('input', e=>{
     spacing = +e.target.value;
     render();
-    if(sourceIsText) scheduleThreshPreview();
+    // re-resample at the new grid density - applies to images and text alike, since
+    // spacing decides how coarse the conversion reads.
+    if(canvasFromConversion) scheduleThreshPreview();
   });
 
   document.getElementById('radiusSlider').addEventListener('input', e=>{
     radiusMult = (+e.target.value) / 100;
     render();
-    if(sourceIsText) scheduleThreshPreview();
+    if(canvasFromConversion) scheduleThreshPreview();
   });
 
   // Resize is a normal, persistent percentage control. Its value is also applied to
@@ -1265,25 +1328,7 @@ ${wrapped}
     render();
   });
 
-  // ---------- fill / stroke toggles ----------
-  const fillToggle = document.getElementById('fillToggle');
-  const strokeToggle = document.getElementById('strokeToggle');
-
-  fillToggle.addEventListener('change', e=>{
-    fillOn = e.target.checked;
-    if(!fillOn && !strokeOn){ strokeOn = true; strokeToggle.checked = true; }
-    render();
-  });
-  strokeToggle.addEventListener('change', e=>{
-    strokeOn = e.target.checked;
-    if(!fillOn && !strokeOn){ fillOn = true; fillToggle.checked = true; }
-    render();
-  });
-  document.getElementById('strokeWidthSlider').addEventListener('input', e=>{
-    strokeWidth = +e.target.value;
-    render();
-  });
-
+  // ---------- colour swatches ----------
   function wireSwatchGroup(groupId, onPick){
     const group = document.getElementById(groupId);
     group.querySelectorAll('.swatch[data-color]').forEach(s=>{
@@ -1296,25 +1341,6 @@ ${wrapped}
     });
   }
   wireSwatchGroup('fillSwatches', hex=>{ fillColor = hex; render(); });
-  wireSwatchGroup('strokeSwatches', hex=>{ strokeColor = hex; render(); });
-
-  document.getElementById('comboRow').addEventListener('click', e=>{
-    const btn = e.target.closest('.combo-btn');
-    if(!btn) return;
-    fillColor = btn.dataset.fill;
-    strokeColor = btn.dataset.stroke;
-    fillOn = true; strokeOn = true;
-    fillToggle.checked = true;
-    strokeToggle.checked = true;
-    document.querySelectorAll('#fillSwatches .swatch[data-color]').forEach(s=>{
-      s.classList.toggle('active', s.dataset.color.toLowerCase() === fillColor.toLowerCase());
-    });
-    document.querySelectorAll('#strokeSwatches .swatch[data-color]').forEach(s=>{
-      s.classList.toggle('active', s.dataset.color.toLowerCase() === strokeColor.toLowerCase());
-    });
-    document.querySelectorAll('#comboRow .combo-btn').forEach(b=> b.classList.toggle('active', b===btn));
-    render();
-  });
 
   // ---------- image upload ----------
   const fileDrop = document.getElementById('fileDrop');
@@ -1328,6 +1354,10 @@ ${wrapped}
   const fontUploadStatus = document.getElementById('fontUploadStatus');
 
   let sourceIsText = false;
+  // true only while the canvas holds the result of an image/text conversion. The grid
+  // sliders re-run that conversion live, which replaces the whole canvas - so this gates
+  // it to conversion output and never wipes something drawn or erased by hand.
+  let canvasFromConversion = false;
 
   fileDrop.addEventListener('click', ()=> fileInput.click());
   fileInput.addEventListener('change', e=>{
@@ -1487,6 +1517,7 @@ ${wrapped}
         }
       }
     }
+    canvasFromConversion = true;
     render();
   }
 
