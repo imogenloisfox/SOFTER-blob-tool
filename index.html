@@ -528,11 +528,11 @@
         </div>
         <div class="row">
           <span>Grid spacing</span>
-          <input type="range" id="spacingSlider" min="12" max="500" value="40" step="2">
+          <input type="range" id="spacingSlider" min="12" max="350" value="96" step="2">
         </div>
         <div class="row">
           <span>Node size</span>
-          <input type="range" id="radiusSlider" min="15" max="320" value="130" step="5">
+          <input type="range" id="radiusSlider" min="15" max="320" value="65" step="5">
         </div>
         <div class="row">
           <span>Resize</span>
@@ -663,10 +663,10 @@
   off.width = W; off.height = H;
   const offCtx = off.getContext('2d');
 
-  let spacing = 40;
+  let spacing = 96;
   let gridPattern = 'square'; // 'square' | 'hex'
   let mergeStyle = 'circles'; // 'circles' (individual unattached circles, default) | 'blend' (metaball merge)
-  let radiusMult = 1.3;
+  let radiusMult = 0.65;
   let fillOn = true;
   let strokeOn = false;
   let fillColor = '#FFCCEE';
