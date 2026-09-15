@@ -241,6 +241,10 @@
     background:var(--red);
     color:#fff;
   }
+  .seg button:disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+  }
   .iconbtn{
     border:1px solid var(--line);
     background:#fff;
@@ -383,26 +387,6 @@
     font-weight:400;
   }
   label.check input{ accent-color:var(--red); width:16px; height:16px; }
-  .full-btn{
-    width:100%;
-    padding:11px;
-    border-radius:10px;
-    border:none;
-    background:var(--red);
-    color:#fff;
-    font:inherit;
-    font-size:13px;
-    font-weight:400;
-    cursor:pointer;
-  }
-  .full-btn:hover{ opacity:0.88; }
-  .full-btn.secondary{
-    background:#fff;
-    color:var(--ink);
-    border:1px solid var(--line);
-  }
-  .full-btn.secondary:hover{ border-color:var(--red); color:var(--red); }
-  .full-btn:disabled{ opacity:0.4; cursor:not-allowed; }
   .file-drop{
     border:1px dashed var(--line);
     border-radius:10px;
@@ -421,21 +405,6 @@
     display:block;
     margin:0 auto 6px;
     border-radius:6px;
-  }
-  .or-div{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin:10px 0;
-    font-size:11px;
-    font-family:'DM Mono', monospace;
-    color:var(--grey-mid);
-  }
-  .or-div::before, .or-div::after{
-    content:'';
-    flex:1;
-    height:1px;
-    background:var(--line);
   }
   .text-input, .select-input{
     width:100%;
@@ -564,11 +533,6 @@
     padding:6px 10px;
     font-size:11px;
   }
-  .full-btn{
-    padding:8px;
-    font-size:11px;
-    border-radius:8px;
-  }
   .hint{
     font-size:9px;
     line-height:1.35;
@@ -635,11 +599,11 @@
     <div class="panel">
       <div class="card" id="gridCard">
         <h2>Grid</h2>
-        <div class="row">
-          <span>Pattern</span>
-          <div class="seg" id="patternSeg">
-            <button data-pattern="square" class="active">Square</button>
-            <button data-pattern="hex">Beehive</button>
+        <div class="row" style="margin-bottom:8px;">
+          <span>Style</span>
+          <div class="seg" id="mergeStyleSeg">
+            <button data-style="circles" class="active">Separate</button>
+            <button data-style="blend">Blend</button>
           </div>
         </div>
         <div class="row">
@@ -648,24 +612,20 @@
         </div>
         <div class="row">
           <span>Node size</span>
-          <input type="range" id="radiusSlider" min="15" max="320" value="90" step="5">
-        </div>
-        <div class="row">
-          <span>Resize</span>
-          <input type="range" id="wholeResizeSlider" min="50" max="150" value="100" step="1">
+          <input type="range" id="radiusSlider" min="5" max="200" value="23" step="1">
         </div>
       </div>
 
-      <div class="card" id="colourCard">
-        <h2>Colour</h2>
+      <div class="card" id="appearanceCard">
+        <h2>Appearance</h2>
         <div class="row" style="margin-bottom:8px;">
-          <span>Style</span>
-          <div class="seg" id="mergeStyleSeg">
-            <button data-style="circles" class="active">Circles</button>
-            <button data-style="blend">Blend</button>
+          <span>Shape</span>
+          <div class="seg" id="nodeShapeSeg">
+            <button data-shape="dots" class="active">Dots</button>
+            <button data-shape="flower">Flower</button>
           </div>
         </div>
-        <div class="row" style="margin-bottom:8px;">
+        <div class="row" style="margin-bottom:0;">
           <span>Colour</span>
           <div class="swatches" id="fillSwatches">
             <button class="swatch active" data-color="#FFCCEE" style="background:#FFCCEE"></button>
@@ -675,13 +635,6 @@
             <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
             <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
           </div>
-        </div>
-        <div class="row" style="margin-bottom:8px;">
-          <label class="check" style="margin:0;"><input type="checkbox" id="perforateToggle"> Perforate</label>
-        </div>
-        <div class="row" style="margin-bottom:0;">
-          <span>Hole size</span>
-          <input type="range" id="perforateSizeSlider" min="10" max="50" value="30" step="1">
         </div>
       </div>
 
@@ -733,11 +686,19 @@
 (function(){
   const canvas = document.getElementById('stage');
   const ctx = canvas.getContext('2d');
+  // Keep W/H in CSS pixels for all geometry and interaction, but render both canvases
+  // at the device-pixel resolution. This preserves the existing sizing/zoom maths while
+  // making edges genuinely high-resolution on Retina/HiDPI displays.
   let W = canvas.width, H = canvas.height;
+  let DPR = 1;
 
   const off = document.createElement('canvas');
   off.width = W; off.height = H;
   const offCtx = off.getContext('2d');
+
+  function setHiDPITransform(c){
+    c.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
 
   // Grid spacing uses a raw 0-1000 slider mapped through a power curve rather than a
   // straight linear range - the old range spent half its length on very sparse, coarse
@@ -751,15 +712,20 @@
     return Math.round(SPACING_MIN + (SPACING_MAX - SPACING_MIN) * Math.pow(t, SPACING_CURVE_POWER));
   }
   let spacing = spacingFromRaw(375);
-  let gridPattern = 'square'; // 'square' | 'hex'
   let mergeStyle = 'circles'; // 'circles' (individual unattached circles, default) | 'blend' (metaball merge)
-  let radiusMult = 0.90;
+  let nodeRadius = 23; // absolute pixel radius for new nodes - deliberately independent of
+                        // Grid spacing, so widening the spacing only spreads nodes apart and
+                        // never changes their size
   let fillColor = '#FFCCEE';
-  let perforate = false; // punches a small hole through every node's own centre, independent
-  let perforateSize = 0.3; // hole radius as a fraction of that node's own radius
+  let nodeShape = 'dots'; // 'dots' (plain circle) | 'flower' - Circles mode only; Blend always
+                           // uses the circular metaball field regardless, since that's what
+                           // the merge math is built on.
+  // uploaded flower/quatrefoil mark, natural viewBox 0 0 617 617, centred on its own middle
+  const FLOWER_PATH = 'M446.817 445.094C491.388 456.657 540.842 445.317 576.293 410.461C627.728 359.884 630.315 276.713 582.111 223.025C548.895 186.033 500.24 171.641 455.038 180.413C448.79 181.629 443.479 175.978 445.081 169.817C456.645 125.247 445.305 75.7923 410.449 40.3415C359.872 -11.0933 276.7 -13.6801 223.024 34.5122C186.033 67.7283 171.641 116.383 180.413 161.585C181.629 167.833 175.977 173.144 169.817 171.542C125.247 159.978 75.7922 171.318 40.3415 206.174C-11.0934 256.751 -13.6802 339.923 34.5121 393.599C67.7283 430.59 116.383 444.982 161.585 436.21C167.833 434.994 173.144 440.646 171.542 446.806C159.978 491.376 171.318 540.831 206.174 576.282C256.751 627.716 339.923 630.303 393.599 582.111C430.59 548.895 444.982 500.24 436.21 455.038C435.005 448.802 440.645 443.503 446.817 445.094Z';
+  const FLOWER_R = 308.5; // natural half-size of the 617x617 source, used to scale to a node's own r
+  const flowerPath2D = (typeof Path2D !== 'undefined') ? new Path2D(FLOWER_PATH) : null;
   let showGrid = true;
   let mode = 'draw';
-  let wholeResizeScale = 1;
 
   let camX = 0;
   let camY = 0;
@@ -775,16 +741,13 @@
   function screenToWorld(sx, sy){
     return { x: (sx-W/2)/zoom + camX, y: (sy-H/2)/zoom + camY };
   }
-  // maps a grid index (i,j) to a world position - for 'hex' this is a true hexagonal
-  // (beehive) lattice: rows are compressed to spacing*sqrt(3)/2 and alternate rows shift by
-  // half a spacing, which makes every neighbour (including diagonals) exactly `spacing` apart.
+  // maps a grid index (i,j) to a world position. Grid is always square - spacing is the
+  // same in both directions.
   function rowHeight(){
-    return gridPattern === 'hex' ? spacing * (Math.sqrt(3)/2) : spacing;
+    return spacing;
   }
   function cellWorld(i,j){
-    const rh = rowHeight();
-    const odd = gridPattern === 'hex' && (((j%2)+2)%2 === 1);
-    return { wx: i*spacing + (odd ? spacing/2 : 0), wy: j*rh };
+    return { wx: i*spacing, wy: j*spacing };
   }
   function visibleIndexRange(){
     const tl = screenToWorld(0,0);
@@ -815,21 +778,7 @@
   }
   function snapToGrid(sx,sy){
     const w = screenToWorld(sx,sy);
-    if(gridPattern !== 'hex'){
-      return { i: Math.round(w.x/spacing), j: Math.round(w.y/spacing) };
-    }
-    const rh = rowHeight();
-    const jApprox = Math.round(w.y/rh);
-    let best = null, bestDist = Infinity;
-    for(let dj=-1; dj<=1; dj++){
-      const j = jApprox+dj;
-      const odd = (((j%2)+2)%2 === 1);
-      const i = Math.round((w.x - (odd?spacing/2:0))/spacing);
-      const c = cellWorld(i,j);
-      const dist = (c.wx-w.x)*(c.wx-w.x) + (c.wy-w.y)*(c.wy-w.y);
-      if(dist < bestDist){ bestDist = dist; best = {i,j}; }
-    }
-    return best;
+    return { i: Math.round(w.x/spacing), j: Math.round(w.y/spacing) };
   }
 
   let strokeCounter = 0;
@@ -848,7 +797,7 @@
     // resized afterward (Resize mode) without every other circle jumping too.
     // strokeId records which continuous drag placed this node - used only to decide which
     // OTHER nodes it's allowed to smooth against at render time (see expandForMerge).
-    nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:spacing*radiusMult*wholeResizeScale, strokeId:currentStrokeId});
+    nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:nodeRadius, strokeId:currentStrokeId});
     return true;
   }
   function removeNode(i,j){
@@ -914,7 +863,12 @@
     for(let a=0; a<pts.length; a++){
       for(let b=a+1; b<pts.length; b++){
         const p1=pts[a], p2=pts[b];
-        if(p1.strokeId == null || p1.strokeId !== p2.strokeId) continue;
+        // Only excludes nodes with no strokeId at all (image/text conversions), which is
+        // what actually needs hole-protection. Two hand-drawn nodes from DIFFERENT strokes
+        // used to be excluded too - meaning any shape drawn as separate clicks/drags (which
+        // is how most people draw a sharp corner) got no smoothing at the seam, showing up
+        // as a visible pinch exactly at the join.
+        if(p1.strokeId == null || p2.strokeId == null) continue;
         const dx=p2.x-p1.x, dy=p2.y-p1.y;
         const d = Math.hypot(dx,dy);
         if(d>0 && d<=maxDist){
@@ -930,7 +884,7 @@
   }
 
   function buildField(pts){
-    offCtx.setTransform(1,0,0,1,0,0);
+    setHiDPITransform(offCtx);
     offCtx.clearRect(0,0,W,H);
     offCtx.globalCompositeOperation = 'lighter';
     for(const n of pts){
@@ -949,23 +903,8 @@
       offCtx.fill();
     }
     offCtx.globalCompositeOperation = 'source-over';
-    return offCtx.getImageData(0,0,W,H);
-  }
-
-  function punchPerforationHoles(targetCtx, nodes, zoomLevel){
-    // one crisp hole per node, centred on that node's own position - not merged or melted
-    // with its neighbours, so it stays a clean round eyelet even where nodes overlap
-    // densely. Punched as a final pass so it's never covered back over by a later node.
-    if(!perforate) return;
-    targetCtx.save();
-    targetCtx.globalCompositeOperation = 'destination-out';
-    targetCtx.fillStyle = 'rgba(0,0,0,1)';
-    for(const n of nodes){
-      targetCtx.beginPath();
-      targetCtx.arc(n.x, n.y, n.r*zoomLevel*perforateSize, 0, Math.PI*2);
-      targetCtx.fill();
-    }
-    targetCtx.restore();
+    // getImageData works in physical pixels, so read the full HiDPI buffer.
+    return offCtx.getImageData(0,0,Math.round(W*DPR),Math.round(H*DPR));
   }
 
   function render(){
@@ -975,19 +914,29 @@
         .map(n => ({x:n.x, y:n.y, r:n.r*zoom}));
 
       if(mergeStyle === 'circles'){
-        // each node drawn as its own independent filled circle, simply layered with normal
+        // each node drawn as its own independent filled shape, simply layered with normal
         // compositing - no field/threshold merge at all, so every node keeps its own edge
         // instead of dissolving into one shape.
-        offCtx.setTransform(1,0,0,1,0,0);
+        setHiDPITransform(offCtx);
         offCtx.clearRect(0,0,W,H);
         offCtx.globalCompositeOperation = 'source-over';
         offCtx.fillStyle = fillColor;
         for(const n of nodeList){
-          offCtx.beginPath();
-          offCtx.arc(n.x, n.y, n.r*zoom, 0, Math.PI*2);
-          offCtx.fill();
+          const r = n.r*zoom;
+          if(nodeShape === 'flower' && flowerPath2D){
+            offCtx.save();
+            offCtx.translate(n.x, n.y);
+            const s = r/FLOWER_R;
+            offCtx.scale(s, s);
+            offCtx.translate(-FLOWER_R, -FLOWER_R);
+            offCtx.fill(flowerPath2D);
+            offCtx.restore();
+          } else {
+            offCtx.beginPath();
+            offCtx.arc(n.x, n.y, r, 0, Math.PI*2);
+            offCtx.fill();
+          }
         }
-        punchPerforationHoles(offCtx, nodeList, zoom);
       } else {
       const innerImg = buildField(circlePts);
       const data = innerImg.data;
@@ -1008,22 +957,22 @@
         }
       }
       offCtx.putImageData(innerImg,0,0);
-      punchPerforationHoles(offCtx, nodeList, zoom);
       }
     } else {
       // nothing to draw (e.g. right after Clear) - the offscreen buffer still holds
       // whatever was composited last time, so it must be wiped or the stale shape
       // just gets redrawn every frame until something else happens to rebuild it.
-      offCtx.setTransform(1,0,0,1,0,0);
+      setHiDPITransform(offCtx);
       offCtx.clearRect(0,0,W,H);
     }
 
-    ctx.setTransform(1,0,0,1,0,0);
+    setHiDPITransform(ctx);
     ctx.filter = 'none';
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0,0,W,H);
     drawGridDots();
-    ctx.drawImage(off,0,0);
+    // Explicitly map the physical offscreen buffer back into CSS-pixel space.
+    ctx.drawImage(off,0,0,W,H);
 
     if(!dragIsPan){
       // live preview of the next circle - snapped to the current grid, sized to the current
@@ -1035,7 +984,7 @@
       const {i,j} = snapToGrid(previewPos.x, previewPos.y);
       const c = cellWorld(i,j);
       const s = worldToScreen(c.wx, c.wy);
-      const r = spacing * radiusMult * wholeResizeScale * zoom;
+      const r = nodeRadius * zoom;
       ctx.save();
       ctx.globalAlpha = 0.55;
       ctx.beginPath();
@@ -1159,13 +1108,6 @@
     document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('active', b===btn));
   });
 
-  document.getElementById('patternSeg').addEventListener('click', e=>{
-    const btn = e.target.closest('button');
-    if(!btn) return;
-    gridPattern = btn.dataset.pattern;
-    document.querySelectorAll('#patternSeg button').forEach(b=>b.classList.toggle('active', b===btn));
-    render();
-  });
 
   document.getElementById('mergeStyleSeg').addEventListener('click', e=>{
     const btn = e.target.closest('button');
@@ -1175,12 +1117,30 @@
     render();
   });
 
-  document.getElementById('perforateToggle').addEventListener('change', e=>{
-    perforate = e.target.checked;
-    render();
-  });
-  document.getElementById('perforateSizeSlider').addEventListener('input', e=>{
-    perforateSize = (+e.target.value) / 100;
+  const blendBtnEl = document.querySelector('#mergeStyleSeg button[data-style="blend"]');
+  const circlesBtnEl = document.querySelector('#mergeStyleSeg button[data-style="circles"]');
+  function syncBlendAvailability(){
+    // the merge field only knows how to blend circular falloffs, so Blend + Flower isn't a
+    // combination that can render - rather than let you pick it and see nothing sensible
+    // happen, Blend is disabled outright while Flower is selected.
+    if(nodeShape === 'flower'){
+      blendBtnEl.disabled = true;
+      if(mergeStyle === 'blend'){
+        mergeStyle = 'circles';
+        circlesBtnEl.classList.add('active');
+        blendBtnEl.classList.remove('active');
+      }
+    } else {
+      blendBtnEl.disabled = false;
+    }
+  }
+
+  document.getElementById('nodeShapeSeg').addEventListener('click', e=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    nodeShape = btn.dataset.shape;
+    document.querySelectorAll('#nodeShapeSeg button').forEach(b=>b.classList.toggle('active', b===btn));
+    syncBlendAvailability();
     render();
   });
 
@@ -1201,14 +1161,6 @@
   });
 
   // ---------- SVG export ----------
-  function circlesMarkup(pts){
-    let s = '';
-    for(const n of pts){
-      s += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${n.r.toFixed(1)}"/>`;
-    }
-    return s;
-  }
-
   // The Blend look used to be faked in the exported SVG with a blur+contrast filter. That
   // renders differently in every app - Illustrator drops the filter (so you get loose
   // circles, no blend at all) and Figma rasterises it (so it lands blurry). Instead we
@@ -1430,29 +1382,21 @@
 
     let bodyMarkup = '';
     if(mergeStyle === 'circles'){
-      // each node as its own circle, simply layered - mirrors the canvas Circles mode exactly.
+      // each node as its own shape, simply layered - mirrors the canvas Circles mode exactly.
       for(const n of nodeList){
-        bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillColor}"/>`;
+        if(nodeShape === 'flower'){
+          const s = n.r/FLOWER_R;
+          bodyMarkup += `<path d="${FLOWER_PATH}" fill="${fillColor}" transform="translate(${n.wx.toFixed(2)} ${n.wy.toFixed(2)}) scale(${s.toFixed(4)}) translate(${(-FLOWER_R).toFixed(2)} ${(-FLOWER_R).toFixed(2)})"/>`;
+        } else {
+          bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillColor}"/>`;
+        }
       }
     } else {
       const d = blendOutlinePath(exportPts, vbX, vbY, vbW, vbH);
       bodyMarkup += `<path d="${d}" fill="${fillColor}" fill-rule="evenodd"/>`;
     }
 
-    let defs = '';
-    if(perforate){
-      // one crisp hole per node punched via a mask - independent of whichever geometry
-      // technique built bodyMarkup above, so it works identically for Circles and Blend.
-      let holes = '';
-      for(const n of nodeList){
-        holes += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${(n.r*perforateSize).toFixed(1)}" fill="black"/>`;
-      }
-      defs = `<mask id="perforateMask"><rect x="${vbX.toFixed(1)}" y="${vbY.toFixed(1)}" width="${vbW.toFixed(1)}" height="${vbH.toFixed(1)}" fill="white"/>${holes}</mask>`;
-      bodyMarkup = `<g mask="url(#perforateMask)">${bodyMarkup}</g>`;
-    }
-
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vbX.toFixed(1)} ${vbY.toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}" width="${vbW.toFixed(0)}" height="${vbH.toFixed(0)}">
-<defs>${defs}</defs>
 ${bodyMarkup}
 </svg>`;
 
@@ -1476,30 +1420,9 @@ ${bodyMarkup}
   });
 
   document.getElementById('radiusSlider').addEventListener('input', e=>{
-    radiusMult = (+e.target.value) / 100;
+    nodeRadius = +e.target.value;
     render();
     if(canvasFromConversion) scheduleThreshPreview();
-  });
-
-  // Resize is a normal, persistent percentage control. Its value is also applied to
-  // newly converted text/images, so changing the source does not discard the scale.
-  function scaleWholeDrawing(factor){
-    // circle SIZE only - positions stay exactly where they were placed on the grid.
-    // An earlier version also scaled position relative to the drawing's centre, which
-    // spread nodes apart as well as resizing them; this keeps every circle pinned to
-    // its own grid cell and just grows or shrinks it in place.
-    if(!nodeList.length || factor === 1) return;
-    for(const n of nodeList){
-      n.r = n.r*factor;
-    }
-  }
-  const wholeResizeSlider = document.getElementById('wholeResizeSlider');
-  wholeResizeSlider.addEventListener('input', e=>{
-    const val = +e.target.value;
-    const nextScale = val / 100;
-    scaleWholeDrawing(nextScale / wholeResizeScale);
-    wholeResizeScale = nextScale;
-    render();
   });
 
   // ---------- colour swatches ----------
@@ -1715,7 +1638,7 @@ ${bodyMarkup}
           nodeSet.add(key);
           const c = cellWorld(i,j);
           const s = worldToScreen(c.wx, c.wy);
-          nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:spacing*radiusMult*wholeResizeScale, strokeId:null});
+          nodeList.push({i,j,wx:c.wx, wy:c.wy, x:s.x, y:s.y, r:nodeRadius, strokeId:null});
         }
       }
     }
@@ -1748,10 +1671,23 @@ ${bodyMarkup}
     const rect = canvas.getBoundingClientRect();
     const newW = Math.max(200, Math.round(rect.width));
     const newH = Math.max(200, Math.round(rect.height));
-    const changed = (newW !== W || newH !== H);
-    W = newW; H = newH;
-    canvas.width = W; canvas.height = H;
-    off.width = W; off.height = H;
+    const newDPR = Math.max(1, window.devicePixelRatio || 1);
+    const changed = (newW !== W || newH !== H || newDPR !== DPR);
+
+    W = newW;
+    H = newH;
+    DPR = newDPR;
+
+    // CSS size stays logical, backing-store size gets multiplied by devicePixelRatio.
+    // This is the key fix for the jagged edges on Retina/HiDPI displays.
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    off.width = Math.round(W * DPR);
+    off.height = Math.round(H * DPR);
+
+    setHiDPITransform(ctx);
+    setHiDPITransform(offCtx);
+
     if(changed) regenerateNodePositions();
   }
 
@@ -1773,6 +1709,7 @@ ${bodyMarkup}
   }
 
   applyCanvasSize();
+  syncBlendAvailability();
   render();
 })();
 </script>
