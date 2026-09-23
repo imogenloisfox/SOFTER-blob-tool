@@ -377,6 +377,25 @@
     padding:0;
   }
   .swatch.active{ border-color:var(--ink); }
+  .swatch-custom{
+    --custom-swatch-bg:#000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 5v14M5 12h14' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/45%;
+    -webkit-appearance:none;
+    appearance:none;
+    border:none;
+    outline:none;
+    box-shadow:none;
+    padding:0;
+    cursor:pointer;
+    background:var(--custom-swatch-bg);
+  }
+  .swatch-custom.active{
+    border:none;
+    outline:none;
+    box-shadow:none;
+  }
+  .swatch-custom::-webkit-color-swatch-wrapper{ padding:0; border-radius:50%; overflow:hidden; }
+  .swatch-custom::-webkit-color-swatch{ border:none; border-radius:50%; background:var(--custom-swatch-bg); }
+  .swatch-custom::-moz-color-swatch{ border:none; border-radius:50%; background:var(--custom-swatch-bg); }
   label.check{
     display:flex;
     align-items:center;
@@ -608,11 +627,11 @@
         </div>
         <div class="row">
           <span>Grid spacing</span>
-          <input type="range" id="spacingSlider" min="0" max="1000" value="375" step="1">
+          <input type="range" id="spacingSlider" min="0" max="1000" value="0" step="1">
         </div>
         <div class="row">
           <span>Node size</span>
-          <input type="range" id="radiusSlider" min="5" max="200" value="23" step="1">
+          <input type="range" id="radiusSlider" min="5" max="200" value="5" step="1">
         </div>
       </div>
 
@@ -625,8 +644,15 @@
             <button data-shape="flower">Flower</button>
           </div>
         </div>
-        <div class="row" style="margin-bottom:0;">
+        <div class="row" style="margin-bottom:8px;" id="colourModeRow">
           <span>Colour</span>
+          <div class="seg" id="fillModeSeg">
+            <button data-mode="solid" class="active">Solid</button>
+            <button data-mode="gradient">Gradient</button>
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:0;" id="solidColourRow">
+          <span></span>
           <div class="swatches" id="fillSwatches">
             <button class="swatch active" data-color="#FFCCEE" style="background:#FFCCEE"></button>
             <button class="swatch" data-color="#FFA4E0" style="background:#FFA4E0"></button>
@@ -634,6 +660,31 @@
             <button class="swatch" data-color="#FFF5FC" style="background:#FFF5FC"></button>
             <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
             <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
+            <input type="color" class="swatch swatch-custom" id="fillCustomColor" value="#000000" title="Choose a custom colour">
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:8px; display:none;" id="gradientTopRow">
+          <span>Top</span>
+          <div class="swatches" id="gradientTopSwatches">
+            <button class="swatch active" data-color="#FFCCEE" style="background:#FFCCEE"></button>
+            <button class="swatch" data-color="#FFA4E0" style="background:#FFA4E0"></button>
+            <button class="swatch" data-color="#FF3B0F" style="background:#FF3B0F"></button>
+            <button class="swatch" data-color="#FFF5FC" style="background:#FFF5FC"></button>
+            <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
+            <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
+            <input type="color" class="swatch swatch-custom" id="gradientTopCustomColor" value="#000000" title="Choose a custom colour">
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:0; display:none;" id="gradientBottomRow">
+          <span>Bottom</span>
+          <div class="swatches" id="gradientBottomSwatches">
+            <button class="swatch" data-color="#FFCCEE" style="background:#FFCCEE"></button>
+            <button class="swatch" data-color="#FFA4E0" style="background:#FFA4E0"></button>
+            <button class="swatch" data-color="#FF3B0F" style="background:#FF3B0F"></button>
+            <button class="swatch" data-color="#FFF5FC" style="background:#FFF5FC"></button>
+            <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
+            <button class="swatch active" data-color="#7C7C7C" style="background:#7C7C7C"></button>
+            <input type="color" class="swatch swatch-custom" id="gradientBottomCustomColor" value="#000000" title="Choose a custom colour">
           </div>
         </div>
       </div>
@@ -711,12 +762,17 @@
     const t = raw / 1000;
     return Math.round(SPACING_MIN + (SPACING_MAX - SPACING_MIN) * Math.pow(t, SPACING_CURVE_POWER));
   }
-  let spacing = spacingFromRaw(375);
+  let spacing = spacingFromRaw(0);
   let mergeStyle = 'circles'; // 'circles' (individual unattached circles, default) | 'blend' (metaball merge)
-  let nodeRadius = 23; // absolute pixel radius for new nodes - deliberately independent of
+  let nodeRadius = 5; // absolute pixel radius for new nodes - deliberately independent of
                         // Grid spacing, so widening the spacing only spreads nodes apart and
                         // never changes their size
   let fillColor = '#FFCCEE';
+  let fillMode = 'solid'; // 'solid' | 'gradient' - gradient runs top-to-bottom across the
+                           // drawing's own visual extent, not the canvas/viewport, so it
+                           // stays consistent regardless of pan or zoom.
+  let gradientTop = '#FFCCEE';
+  let gradientBottom = '#7C7C7C';
   let nodeShape = 'dots'; // 'dots' (plain circle) | 'flower' - Circles mode only; Blend always
                            // uses the circular metaball field regardless, since that's what
                            // the merge math is built on.
@@ -822,9 +878,106 @@
     const num = parseInt(v.length===3 ? v.split('').map(c=>c+c).join('') : v, 16);
     return [(num>>16)&255, (num>>8)&255, num&255];
   }
+  function rgbToHsl(r,g,b){
+    r/=255; g/=255; b/=255;
+    const max=Math.max(r,g,b), min=Math.min(r,g,b);
+    let h=0, s=0; const l=(max+min)/2;
+    if(max!==min){
+      const d = max-min;
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      if(max===r) h=(g-b)/d+(g<b?6:0);
+      else if(max===g) h=(b-r)/d+2;
+      else h=(r-g)/d+4;
+      h/=6;
+    }
+    return [h,s,l];
+  }
+  function hslToRgb(h,s,l){
+    if(s===0){ const v=Math.round(l*255); return [v,v,v]; }
+    const hue2rgb=(p,q,t)=>{
+      if(t<0) t+=1;
+      if(t>1) t-=1;
+      if(t<1/6) return p+(q-p)*6*t;
+      if(t<1/2) return q;
+      if(t<2/3) return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    const q = l<0.5 ? l*(1+s) : l+s-l*s;
+    const p = 2*l-q;
+    return [
+      Math.round(hue2rgb(p,q,h+1/3)*255),
+      Math.round(hue2rgb(p,q,h)*255),
+      Math.round(hue2rgb(p,q,h-1/3)*255)
+    ];
+  }
+  // Interpolating colour stops directly in RGB (e.g. this pink to this orange) crosses
+  // through a visibly duller, desaturated patch partway between them - confirmed directly by
+  // rendering the interpolation curve. Going via HSL and always taking the *shorter* way
+  // round the hue wheel (so pink->red sweeps through magenta, not backwards through the
+  // entire rest of the spectrum) keeps the gradient vivid all the way through instead.
+  function hueLerpShortest(h1,h2,t){
+    let diff = h2-h1;
+    if(diff>0.5) diff -= 1;
+    if(diff<-0.5) diff += 1;
+    return ((h1+diff*t)%1+1)%1;
+  }
+  function hslLerpRgb(h1,s1,l1,h2,s2,l2,t){
+    // A fully desaturated colour (grey, black, white) has no real hue - by convention its
+    // hue value just defaults to 0 (red). Interpolating toward that defaulted value pulls
+    // the whole transition visibly red/warm even though the endpoint itself never asked to
+    // be red - confirmed directly by rendering pink->grey with and without this check. The
+    // fix: when one end has no real hue, hold the OTHER end's hue steady the whole way
+    // through and let saturation alone fade it out to grey.
+    let hue;
+    if(s1<1e-6 && s2<1e-6) hue = 0;
+    else if(s1<1e-6) hue = h2;
+    else if(s2<1e-6) hue = h1;
+    else hue = hueLerpShortest(h1,h2,t);
+    return hslToRgb(hue, s1+(s2-s1)*t, l1+(l2-l1)*t);
+  }
+  function gradientRgbAt(topHex, bottomHex, t){
+    const [h1,s1,l1] = rgbToHsl(...hexToRgb(topHex));
+    const [h2,s2,l2] = rgbToHsl(...hexToRgb(bottomHex));
+    return hslLerpRgb(h1,s1,l1,h2,s2,l2,t);
+  }
+  // A plain linear t still spends a large fraction of the shape's height visibly "between"
+  // the two colours - confirmed by rendering both side by side. Easing the colour-mix
+  // amount (not the physical position) holds each colour closer to pure near its own end and
+  // crosses over faster through the middle, without changing where the gradient physically
+  // starts or ends.
+  function gradientEase(t){ return smoothstep(0, 1, t); }
   function smoothstep(edge0, edge1, v){
     const t = Math.max(0, Math.min(1, (v-edge0)/(edge1-edge0)));
     return t*t*(3-2*t);
+  }
+  // top-to-bottom screen-space extent of the drawing itself (not the canvas/viewport), so
+  // the gradient always runs from the top of the shape to the bottom of the shape and stays
+  // put as you pan or zoom, rather than sliding around relative to the artwork.
+  function drawingScreenYBounds(){
+    let minY = Infinity, maxY = -Infinity;
+    for(const n of nodeList){
+      const r = n.r*zoom;
+      if(n.y-r < minY) minY = n.y-r;
+      if(n.y+r > maxY) maxY = n.y+r;
+    }
+    if(!isFinite(minY)){ minY = 0; maxY = H; }
+    if(maxY-minY < 1) maxY = minY+1;
+    return {minY, maxY};
+  }
+  const GRADIENT_STOP_COUNT = 16; // native canvas/SVG gradients only lerp in flat RGB between
+  // stops, so a plain 2-stop gradient reintroduces the same muddy patch HSL was meant to
+  // fix. Sampling the HSL curve at enough points and feeding those as stops keeps each
+  // individual hop small enough that RGB-lerping between any two adjacent ones is visually
+  // indistinguishable from the true curve.
+  function makeCanvasGradient(targetCtx){
+    const {minY, maxY} = drawingScreenYBounds();
+    const g = targetCtx.createLinearGradient(0, minY, 0, maxY);
+    for(let i=0;i<=GRADIENT_STOP_COUNT;i++){
+      const t = i/GRADIENT_STOP_COUNT;
+      const [r,gg,b] = gradientRgbAt(gradientTop, gradientBottom, gradientEase(t));
+      g.addColorStop(t, `rgb(${r},${gg},${b})`);
+    }
+    return g;
   }
 
   const FILL_T = 120;
@@ -920,7 +1073,7 @@
         setHiDPITransform(offCtx);
         offCtx.clearRect(0,0,W,H);
         offCtx.globalCompositeOperation = 'source-over';
-        offCtx.fillStyle = fillColor;
+        offCtx.fillStyle = fillMode === 'gradient' ? makeCanvasGradient(offCtx) : fillColor;
         for(const n of nodeList){
           const r = n.r*zoom;
           if(nodeShape === 'flower' && flowerPath2D){
@@ -940,20 +1093,51 @@
       } else {
       const innerImg = buildField(circlePts);
       const data = innerImg.data;
-      const [fr,fg,fb] = hexToRgb(fillColor);
 
       // anti-aliased edge: instead of a hard 0/255 cutoff at FILL_T (which stair-steps on a
       // raster canvas), fade the edge smoothly over a small band.
       const AA = 2;
-      for(let p=0; p<data.length; p+=4){
-        const cov = smoothstep(FILL_T-AA, FILL_T+AA, data[p+3]);
-        if(cov > 0.002){
-          data[p]   = fr;
-          data[p+1] = fg;
-          data[p+2] = fb;
-          data[p+3] = Math.round(cov*255);
-        } else {
-          data[p+3] = 0;
+      if(fillMode === 'gradient'){
+        // colour varies per row (top-to-bottom), computed once per row rather than once per
+        // pixel - a lerp per row keeps this roughly as fast as the solid-fill loop even on
+        // a large physical buffer, instead of a few million redundant lerps. HSL values for
+        // both ends are precomputed once rather than re-parsed on every row.
+        const [h1,s1,l1] = rgbToHsl(...hexToRgb(gradientTop));
+        const [h2,s2,l2] = rgbToHsl(...hexToRgb(gradientBottom));
+        const {minY, maxY} = drawingScreenYBounds();
+        const span = Math.max(1e-6, maxY - minY);
+        const physW = Math.round(W*DPR);
+        const physH = Math.round(H*DPR);
+        for(let row=0; row<physH; row++){
+          const rowLogicalY = row / DPR;
+          const t = Math.max(0, Math.min(1, (rowLogicalY - minY) / span));
+          const [fr,fg,fb] = hslLerpRgb(h1,s1,l1,h2,s2,l2,gradientEase(t));
+          const rowStart = row * physW * 4;
+          const rowEnd = rowStart + physW*4;
+          for(let p=rowStart; p<rowEnd; p+=4){
+            const cov = smoothstep(FILL_T-AA, FILL_T+AA, data[p+3]);
+            if(cov > 0.002){
+              data[p]   = fr;
+              data[p+1] = fg;
+              data[p+2] = fb;
+              data[p+3] = Math.round(cov*255);
+            } else {
+              data[p+3] = 0;
+            }
+          }
+        }
+      } else {
+        const [fr,fg,fb] = hexToRgb(fillColor);
+        for(let p=0; p<data.length; p+=4){
+          const cov = smoothstep(FILL_T-AA, FILL_T+AA, data[p+3]);
+          if(cov > 0.002){
+            data[p]   = fr;
+            data[p+1] = fg;
+            data[p+2] = fb;
+            data[p+3] = Math.round(cov*255);
+          } else {
+            data[p+3] = 0;
+          }
         }
       }
       offCtx.putImageData(innerImg,0,0);
@@ -989,7 +1173,7 @@
       ctx.globalAlpha = 0.55;
       ctx.beginPath();
       ctx.arc(s.x, s.y, r, 0, Math.PI*2);
-      ctx.strokeStyle = mode === 'erase' ? '#7C7C7C' : fillColor;
+      ctx.strokeStyle = mode === 'erase' ? '#7C7C7C' : (fillMode === 'gradient' ? gradientTop : fillColor);
       ctx.lineWidth = 2;
       ctx.setLineDash([5,4]);
       ctx.stroke();
@@ -1380,24 +1564,42 @@
     const vbX = minX - pad, vbY = minY - pad;
     const vbW = (maxX - minX) + pad*2, vbH = (maxY - minY) + pad*2;
 
+    const fillRef = fillMode === 'gradient' ? 'url(#fillGrad)' : fillColor;
+    let defsMarkup = '';
+    if(fillMode === 'gradient'){
+      // userSpaceOnUse with explicit y1/y2 spanning the drawing's own padded bounds, so
+      // every shape - circle, flower, or the traced blend path - samples the correct slice
+      // of the same top-to-bottom gradient automatically, exactly matching the canvas. Same
+      // multi-stop HSL sampling as the canvas gradient (see makeCanvasGradient) - SVG stops
+      // only lerp in flat RGB same as canvas ones do, so a plain 2-stop version would bring
+      // the muddy midpoint straight back in the exported file.
+      let stopsMarkup = '';
+      for(let i=0;i<=GRADIENT_STOP_COUNT;i++){
+        const t = i/GRADIENT_STOP_COUNT;
+        const [r,g,b] = gradientRgbAt(gradientTop, gradientBottom, gradientEase(t));
+        stopsMarkup += `<stop offset="${t.toFixed(4)}" stop-color="rgb(${r},${g},${b})"/>`;
+      }
+      defsMarkup = `<defs><linearGradient id="fillGrad" gradientUnits="userSpaceOnUse" x1="0" y1="${vbY.toFixed(1)}" x2="0" y2="${(vbY+vbH).toFixed(1)}">${stopsMarkup}</linearGradient></defs>`;
+    }
+
     let bodyMarkup = '';
     if(mergeStyle === 'circles'){
       // each node as its own shape, simply layered - mirrors the canvas Circles mode exactly.
       for(const n of nodeList){
         if(nodeShape === 'flower'){
           const s = n.r/FLOWER_R;
-          bodyMarkup += `<path d="${FLOWER_PATH}" fill="${fillColor}" transform="translate(${n.wx.toFixed(2)} ${n.wy.toFixed(2)}) scale(${s.toFixed(4)}) translate(${(-FLOWER_R).toFixed(2)} ${(-FLOWER_R).toFixed(2)})"/>`;
+          bodyMarkup += `<path d="${FLOWER_PATH}" fill="${fillRef}" transform="translate(${n.wx.toFixed(2)} ${n.wy.toFixed(2)}) scale(${s.toFixed(4)}) translate(${(-FLOWER_R).toFixed(2)} ${(-FLOWER_R).toFixed(2)})"/>`;
         } else {
-          bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillColor}"/>`;
+          bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillRef}"/>`;
         }
       }
     } else {
       const d = blendOutlinePath(exportPts, vbX, vbY, vbW, vbH);
-      bodyMarkup += `<path d="${d}" fill="${fillColor}" fill-rule="evenodd"/>`;
+      bodyMarkup += `<path d="${d}" fill="${fillRef}" fill-rule="evenodd"/>`;
     }
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vbX.toFixed(1)} ${vbY.toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}" width="${vbW.toFixed(0)}" height="${vbH.toFixed(0)}">
-${bodyMarkup}
+${defsMarkup}${bodyMarkup}
 </svg>`;
 
     const blob = new Blob([svg], {type:'image/svg+xml'});
@@ -1431,13 +1633,50 @@ ${bodyMarkup}
     group.querySelectorAll('.swatch[data-color]').forEach(s=>{
       s.addEventListener('click', ()=>{
         onPick(s.dataset.color);
-        group.querySelectorAll('.swatch[data-color]').forEach(x=>{
-          x.classList.toggle('active', x.dataset.color.toLowerCase() === s.dataset.color.toLowerCase());
+        // .swatch (not just [data-color]) so picking a preset also clears the custom-colour
+        // swatch's active ring if that was the current selection.
+        group.querySelectorAll('.swatch').forEach(x=>{
+          x.classList.toggle('active', x===s);
         });
       });
     });
   }
+  function wireCustomColorInput(inputId, onPick){
+    const input = document.getElementById(inputId);
+    const group = input.parentElement;
+    function markActive(){
+      group.querySelectorAll('.swatch').forEach(x=>x.classList.remove('active'));
+      input.classList.add('active');
+    }
+    // active ring shows as soon as it's clicked/opened, same as the moment you'd see it on
+    // any other swatch - not only after a colour has actually been picked.
+    input.addEventListener('click', markActive);
+    input.addEventListener('input', ()=>{
+      onPick(input.value);
+      markActive();
+    });
+  }
   wireSwatchGroup('fillSwatches', hex=>{ fillColor = hex; render(); });
+  wireSwatchGroup('gradientTopSwatches', hex=>{ gradientTop = hex; render(); });
+  wireSwatchGroup('gradientBottomSwatches', hex=>{ gradientBottom = hex; render(); });
+  wireCustomColorInput('fillCustomColor', hex=>{ fillColor = hex; render(); });
+  wireCustomColorInput('gradientTopCustomColor', hex=>{ gradientTop = hex; render(); });
+  wireCustomColorInput('gradientBottomCustomColor', hex=>{ gradientBottom = hex; render(); });
+
+  const solidColourRow = document.getElementById('solidColourRow');
+  const gradientTopRow = document.getElementById('gradientTopRow');
+  const gradientBottomRow = document.getElementById('gradientBottomRow');
+  document.getElementById('fillModeSeg').addEventListener('click', e=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    fillMode = btn.dataset.mode;
+    document.querySelectorAll('#fillModeSeg button').forEach(b=>b.classList.toggle('active', b===btn));
+    const isGradient = fillMode === 'gradient';
+    solidColourRow.style.display = isGradient ? 'none' : '';
+    gradientTopRow.style.display = isGradient ? '' : 'none';
+    gradientBottomRow.style.display = isGradient ? '' : 'none';
+    render();
+  });
 
   // ---------- image upload ----------
   const fileDrop = document.getElementById('fileDrop');
