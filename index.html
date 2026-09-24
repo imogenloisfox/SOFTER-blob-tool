@@ -633,6 +633,49 @@
           <span>Node size</span>
           <input type="range" id="radiusSlider" min="5" max="200" value="5" step="1">
         </div>
+        <div class="row" style="margin-bottom:8px; margin-top:10px;" id="bgColourModeRow">
+          <span>Background</span>
+          <div class="seg" id="bgFillModeSeg">
+            <button data-mode="solid" class="active">Solid</button>
+            <button data-mode="gradient">Gradient</button>
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:0;" id="bgSolidColourRow">
+          <span></span>
+          <div class="swatches" id="bgFillSwatches">
+            <button class="swatch" data-color="#FFCCEE" style="background:#FFCCEE"></button>
+            <button class="swatch" data-color="#FFA4E0" style="background:#FFA4E0"></button>
+            <button class="swatch" data-color="#FF3B0F" style="background:#FF3B0F"></button>
+            <button class="swatch active" data-color="#FFF5FC" style="background:#FFF5FC"></button>
+            <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
+            <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
+            <input type="color" class="swatch swatch-custom" id="bgFillCustomColor" value="#000000" title="Choose a custom colour">
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:8px; display:none;" id="bgGradientTopRow">
+          <span>Top</span>
+          <div class="swatches" id="bgGradientTopSwatches">
+            <button class="swatch" data-color="#FFCCEE" style="background:#FFCCEE"></button>
+            <button class="swatch" data-color="#FFA4E0" style="background:#FFA4E0"></button>
+            <button class="swatch" data-color="#FF3B0F" style="background:#FF3B0F"></button>
+            <button class="swatch active" data-color="#FFF5FC" style="background:#FFF5FC"></button>
+            <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
+            <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
+            <input type="color" class="swatch swatch-custom" id="bgGradientTopCustomColor" value="#000000" title="Choose a custom colour">
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:0; display:none;" id="bgGradientBottomRow">
+          <span>Bottom</span>
+          <div class="swatches" id="bgGradientBottomSwatches">
+            <button class="swatch" data-color="#FFCCEE" style="background:#FFCCEE"></button>
+            <button class="swatch" data-color="#FFA4E0" style="background:#FFA4E0"></button>
+            <button class="swatch" data-color="#FF3B0F" style="background:#FF3B0F"></button>
+            <button class="swatch active" data-color="#FFF5FC" style="background:#FFF5FC"></button>
+            <button class="swatch" data-color="#EFEFEF" style="background:#EFEFEF"></button>
+            <button class="swatch" data-color="#7C7C7C" style="background:#7C7C7C"></button>
+            <input type="color" class="swatch swatch-custom" id="bgGradientBottomCustomColor" value="#000000" title="Choose a custom colour">
+          </div>
+        </div>
       </div>
 
       <div class="card" id="appearanceCard">
@@ -773,6 +816,13 @@
                            // stays consistent regardless of pan or zoom.
   let gradientTop = '#FFCCEE';
   let gradientBottom = '#7C7C7C';
+  let bgFillMode = 'solid'; // 'solid' | 'gradient' - the canvas/editing background, entirely
+                             // separate from the shape's own fill colour above. Spans the
+                             // full visible canvas (not the drawing's bounds), since the
+                             // background should fill the view regardless of what's drawn.
+  let bgColor = '#FFF5FC';
+  let bgGradientTop = '#FFF5FC';
+  let bgGradientBottom = '#FFF5FC';
   let nodeShape = 'dots'; // 'dots' (plain circle) | 'flower' - Circles mode only; Blend always
                            // uses the circular metaball field regardless, since that's what
                            // the merge math is built on.
@@ -780,6 +830,19 @@
   const FLOWER_PATH = 'M446.817 445.094C491.388 456.657 540.842 445.317 576.293 410.461C627.728 359.884 630.315 276.713 582.111 223.025C548.895 186.033 500.24 171.641 455.038 180.413C448.79 181.629 443.479 175.978 445.081 169.817C456.645 125.247 445.305 75.7923 410.449 40.3415C359.872 -11.0933 276.7 -13.6801 223.024 34.5122C186.033 67.7283 171.641 116.383 180.413 161.585C181.629 167.833 175.977 173.144 169.817 171.542C125.247 159.978 75.7922 171.318 40.3415 206.174C-11.0934 256.751 -13.6802 339.923 34.5121 393.599C67.7283 430.59 116.383 444.982 161.585 436.21C167.833 434.994 173.144 440.646 171.542 446.806C159.978 491.376 171.318 540.831 206.174 576.282C256.751 627.716 339.923 630.303 393.599 582.111C430.59 548.895 444.982 500.24 436.21 455.038C435.005 448.802 440.645 443.503 446.817 445.094Z';
   const FLOWER_R = 308.5; // natural half-size of the 617x617 source, used to scale to a node's own r
   const flowerPath2D = (typeof Path2D !== 'undefined') ? new Path2D(FLOWER_PATH) : null;
+  function transformFlowerPathD(cx, cy, scale){
+    // Positioning each flower via an SVG transform="..." attribute also warps a
+    // userSpaceOnUse gradient's coordinate space for that one element - same underlying
+    // issue as the canvas side, confirmed the same way. Baking the placement directly into
+    // the path's own coordinates instead leaves the gradient's coordinate space alone.
+    let i = 0;
+    return FLOWER_PATH.replace(/-?\d+\.?\d*/g, numStr => {
+      const v = parseFloat(numStr);
+      const out = (i % 2 === 0) ? (cx + (v-FLOWER_R)*scale) : (cy + (v-FLOWER_R)*scale);
+      i++;
+      return out.toFixed(2);
+    });
+  }
   let showGrid = true;
   let mode = 'draw';
 
@@ -933,13 +996,18 @@
   // amount (not the physical position) holds each colour closer to pure near its own end and
   // crosses over faster through the middle, without changing where the gradient physically
   // starts or ends.
+  // Deliberately linear, not eased. In Separate/Flower mode each shape is small and only
+  // samples a narrow slice of the overall gradient based on where it sits in the drawing -
+  // with an eased (steeper-in-the-middle) curve, most individual shapes fall in the "held
+  // near pure" zone and show almost no visible gradient at all, while only the few sitting
+  // right at the midpoint show a dramatic shift. Modelled several shapes at different
+  // positions to confirm: linear gave a consistent internal spread across all of them,
+  // eased gave wildly inconsistent results position to position. The earlier "muddy middle"
+  // problem this easing was trying to fix turned out to be about colour space (RGB vs
+  // OKLab), not curve shape - OKLab alone already keeps a plain linear gradient vivid, so
+  // removing the easing doesn't bring the original problem back.
   function gradientEase(t){
-    const e = smoothstep(0, 1, t);
-    return smoothstep(0, 1, e); // applied twice - a single ease still left a noticeably wide
-    // "in-between" band; doubling it holds each colour closer to pure for longer near its
-    // own end and compresses the actual crossover into a narrower middle band. Circles/SVG-
-    // export and Blend mode both call this one function, so this stays consistent between
-    // them by construction.
+    return t;
   }
   function smoothstep(edge0, edge1, v){
     const t = Math.max(0, Math.min(1, (v-edge0)/(edge1-edge0)));
@@ -970,6 +1038,15 @@
     for(let i=0;i<=GRADIENT_STOP_COUNT;i++){
       const t = i/GRADIENT_STOP_COUNT;
       const [r,gg,b] = gradientRgbAt(gradientTop, gradientBottom, gradientEase(t));
+      g.addColorStop(t, `rgb(${r},${gg},${b})`);
+    }
+    return g;
+  }
+  function makeBgCanvasGradient(targetCtx){
+    const g = targetCtx.createLinearGradient(0, 0, 0, H);
+    for(let i=0;i<=GRADIENT_STOP_COUNT;i++){
+      const t = i/GRADIENT_STOP_COUNT;
+      const [r,gg,b] = gradientRgbAt(bgGradientTop, bgGradientBottom, gradientEase(t));
       g.addColorStop(t, `rgb(${r},${gg},${b})`);
     }
     return g;
@@ -1072,9 +1149,14 @@
         for(const n of nodeList){
           const r = n.r*zoom;
           if(nodeShape === 'flower' && flowerPath2D){
+            // Each flower gets its OWN complete top-to-bottom gradient, not a slice of one
+            // shared across the whole drawing - deliberately different from Dots, which
+            // keeps the shared/global gradient. Filling under this flower's own small local
+            // transform makes the same shared gradient object naturally "squeeze" into just
+            // this flower's own bounds, which is exactly the effect wanted here.
+            const s = r/FLOWER_R;
             offCtx.save();
             offCtx.translate(n.x, n.y);
-            const s = r/FLOWER_R;
             offCtx.scale(s, s);
             offCtx.translate(-FLOWER_R, -FLOWER_R);
             offCtx.fill(flowerPath2D);
@@ -1147,7 +1229,7 @@
 
     setHiDPITransform(ctx);
     ctx.filter = 'none';
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = bgFillMode === 'gradient' ? makeBgCanvasGradient(ctx) : bgColor;
     ctx.fillRect(0,0,W,H);
     drawGridDots();
     // Explicitly map the physical offscreen buffer back into CSS-pixel space.
@@ -1560,6 +1642,7 @@
     const vbW = (maxX - minX) + pad*2, vbH = (maxY - minY) + pad*2;
 
     const fillRef = fillMode === 'gradient' ? 'url(#fillGrad)' : fillColor;
+    const fillRefLocal = fillMode === 'gradient' ? 'url(#fillGradLocal)' : fillColor;
     let defsMarkup = '';
     if(fillMode === 'gradient'){
       // userSpaceOnUse with explicit y1/y2 spanning the drawing's own padded bounds, so
@@ -1574,7 +1657,12 @@
         const [r,g,b] = gradientRgbAt(gradientTop, gradientBottom, gradientEase(t));
         stopsMarkup += `<stop offset="${t.toFixed(4)}" stop-color="rgb(${r},${g},${b})"/>`;
       }
-      defsMarkup = `<defs><linearGradient id="fillGrad" gradientUnits="userSpaceOnUse" x1="0" y1="${vbY.toFixed(1)}" x2="0" y2="${(vbY+vbH).toFixed(1)}">${stopsMarkup}</linearGradient></defs>`;
+      // objectBoundingBox (SVG's default - no gradientUnits attribute needed) instead of
+      // userSpaceOnUse: this one scales to whichever single element references it, so every
+      // flower that points at fillGradLocal gets its own independent top-to-bottom gradient
+      // rather than a slice of one shared across the whole drawing. Dots/circles and Blend
+      // keep using fillGrad (userSpaceOnUse) above, unchanged.
+      defsMarkup = `<defs><linearGradient id="fillGrad" gradientUnits="userSpaceOnUse" x1="0" y1="${vbY.toFixed(1)}" x2="0" y2="${(vbY+vbH).toFixed(1)}">${stopsMarkup}</linearGradient><linearGradient id="fillGradLocal" x1="0" y1="0" x2="0" y2="1">${stopsMarkup}</linearGradient></defs>`;
     }
 
     let bodyMarkup = '';
@@ -1583,7 +1671,8 @@
       for(const n of nodeList){
         if(nodeShape === 'flower'){
           const s = n.r/FLOWER_R;
-          bodyMarkup += `<path d="${FLOWER_PATH}" fill="${fillRef}" transform="translate(${n.wx.toFixed(2)} ${n.wy.toFixed(2)}) scale(${s.toFixed(4)}) translate(${(-FLOWER_R).toFixed(2)} ${(-FLOWER_R).toFixed(2)})"/>`;
+          const d = transformFlowerPathD(n.wx, n.wy, s);
+          bodyMarkup += `<path d="${d}" fill="${fillRefLocal}"/>`;
         } else {
           bodyMarkup += `<circle cx="${n.wx.toFixed(1)}" cy="${n.wy.toFixed(1)}" r="${n.r.toFixed(1)}" fill="${fillRef}"/>`;
         }
@@ -1657,6 +1746,12 @@ ${defsMarkup}${bodyMarkup}
   wireCustomColorInput('fillCustomColor', hex=>{ fillColor = hex; render(); });
   wireCustomColorInput('gradientTopCustomColor', hex=>{ gradientTop = hex; render(); });
   wireCustomColorInput('gradientBottomCustomColor', hex=>{ gradientBottom = hex; render(); });
+  wireSwatchGroup('bgFillSwatches', hex=>{ bgColor = hex; render(); });
+  wireSwatchGroup('bgGradientTopSwatches', hex=>{ bgGradientTop = hex; render(); });
+  wireSwatchGroup('bgGradientBottomSwatches', hex=>{ bgGradientBottom = hex; render(); });
+  wireCustomColorInput('bgFillCustomColor', hex=>{ bgColor = hex; render(); });
+  wireCustomColorInput('bgGradientTopCustomColor', hex=>{ bgGradientTop = hex; render(); });
+  wireCustomColorInput('bgGradientBottomCustomColor', hex=>{ bgGradientBottom = hex; render(); });
 
   const solidColourRow = document.getElementById('solidColourRow');
   const gradientTopRow = document.getElementById('gradientTopRow');
@@ -1670,6 +1765,21 @@ ${defsMarkup}${bodyMarkup}
     solidColourRow.style.display = isGradient ? 'none' : '';
     gradientTopRow.style.display = isGradient ? '' : 'none';
     gradientBottomRow.style.display = isGradient ? '' : 'none';
+    render();
+  });
+
+  const bgSolidColourRow = document.getElementById('bgSolidColourRow');
+  const bgGradientTopRow = document.getElementById('bgGradientTopRow');
+  const bgGradientBottomRow = document.getElementById('bgGradientBottomRow');
+  document.getElementById('bgFillModeSeg').addEventListener('click', e=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    bgFillMode = btn.dataset.mode;
+    document.querySelectorAll('#bgFillModeSeg button').forEach(b=>b.classList.toggle('active', b===btn));
+    const isGradient = bgFillMode === 'gradient';
+    bgSolidColourRow.style.display = isGradient ? 'none' : '';
+    bgGradientTopRow.style.display = isGradient ? '' : 'none';
+    bgGradientBottomRow.style.display = isGradient ? '' : 'none';
     render();
   });
 
