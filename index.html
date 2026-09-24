@@ -603,8 +603,8 @@
         <button class="iconbtn" id="clearBtn">Clear</button>
         <div class="spacer"></div>
         <label class="check"><input type="checkbox" id="gridToggle" checked> Show grid</label>
-        <button class="iconbtn" id="downloadBtn">Download SVG</button>
-        <button class="iconbtn" id="downloadPngBtn">Download PNG</button>
+        <button class="iconbtn" id="downloadBtn" style="display:none;">Download SVG</button>
+        <button class="iconbtn" id="downloadPngBtn">Save</button>
       </div>
       <div class="canvas-wrap">
         <canvas id="stage" width="1180" height="760"></canvas>
@@ -1055,11 +1055,27 @@
 
   const FILL_T = 120;
 
+  function bgLuminance(hex){
+    const [r,g,b] = hexToRgb(hex);
+    return 0.299*r + 0.587*g + 0.114*b;
+  }
+  function gridDotStyle(){
+    // the default medium grey reads fine against light backgrounds, but disappears (or
+    // gets close to it) against something like the red or dark grey swatches - same
+    // luminance formula already used for image-conversion thresholding, checked directly
+    // against the swatch palette to confirm 128 correctly separates the two darker presets
+    // from the four lighter ones. Gradient backgrounds use the average of both ends as one
+    // representative value rather than adapting per-dot down the gradient.
+    const lum = bgFillMode === 'gradient'
+      ? (bgLuminance(bgGradientTop) + bgLuminance(bgGradientBottom)) / 2
+      : bgLuminance(bgColor);
+    return lum < 128 ? 'rgba(239,239,239,0.55)' : 'rgba(124,124,124,0.45)';
+  }
   function drawGridDots(){
     if(!showGrid) return;
     const {iMin, iMax, jMin, jMax} = visibleIndexRange();
     const dotR = Math.max(0.6, Math.min(3, 1.2*zoom));
-    ctx.fillStyle = 'rgba(124,124,124,0.45)';
+    ctx.fillStyle = gridDotStyle();
     for(let j=jMin;j<=jMax;j++){
       for(let i=iMin;i<=iMax;i++){
         const c = cellWorld(i,j);
