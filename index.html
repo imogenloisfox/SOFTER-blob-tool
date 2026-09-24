@@ -1166,16 +1166,22 @@
         for(const n of nodeList){
           const r = n.r*zoom;
           if(nodeShape === 'flower' && flowerPath2D){
-            // Each flower gets its OWN complete top-to-bottom gradient, not a slice of one
-            // shared across the whole drawing - deliberately different from Dots, which
-            // keeps the shared/global gradient. Filling under this flower's own small local
-            // transform makes the same shared gradient object naturally "squeeze" into just
-            // this flower's own bounds, which is exactly the effect wanted here.
+            // Flowers use their own local gradient so each flower receives the full
+            // top-to-bottom colour range, rather than sampling the shared drawing gradient.
             const s = r/FLOWER_R;
             offCtx.save();
             offCtx.translate(n.x, n.y);
             offCtx.scale(s, s);
             offCtx.translate(-FLOWER_R, -FLOWER_R);
+            if(fillMode === 'gradient'){
+              const flowerGradient = offCtx.createLinearGradient(0, 0, 0, FLOWER_R*2);
+              for(let i=0;i<=GRADIENT_STOP_COUNT;i++){
+                const t = i/GRADIENT_STOP_COUNT;
+                const [fr,fg,fb] = gradientRgbAt(gradientTop, gradientBottom, gradientEase(t));
+                flowerGradient.addColorStop(t, `rgb(${fr},${fg},${fb})`);
+              }
+              offCtx.fillStyle = flowerGradient;
+            }
             offCtx.fill(flowerPath2D);
             offCtx.restore();
           } else {
@@ -1755,60 +1761,70 @@ ${defsMarkup}${bodyMarkup}
     setHiDPITransform(offCtx);
     regenerateNodePositions();
     render();
-    const dataUrl = canvas.toDataURL('image/png');
 
-    W = saved.W; H = saved.H; DPR = saved.DPR; zoom = saved.zoom; camX = saved.camX; camY = saved.camY;
-    showGrid = saved.showGrid;
-    suppressPreviewForExport = false;
-    canvas.width = saved.canvasW; canvas.height = saved.canvasH;
-    off.width = saved.offW; off.height = saved.offH;
-    setHiDPITransform(ctx);
-    setHiDPITransform(offCtx);
-    regenerateNodePositions();
-    render();
+    // Capture the actual rendered canvas pixels directly. This keeps the PNG identical to
+    // what is rendered on the canvas, including the gradient texture, instead of rebuilding
+    // the artwork through a separate export path.
+    canvas.toBlob(blob => {
+      const restore = () => {
+        W = saved.W; H = saved.H; DPR = saved.DPR; zoom = saved.zoom; camX = saved.camX; camY = saved.camY;
+        showGrid = saved.showGrid;
+        suppressPreviewForExport = false;
+        canvas.width = saved.canvasW; canvas.height = saved.canvasH;
+        off.width = saved.offW; off.height = saved.offH;
+        setHiDPITransform(ctx);
+        setHiDPITransform(offCtx);
+        regenerateNodePositions();
+        render();
+      };
 
-    // Rounded corners on the final file - a plain square looks like a debug screenshot,
-    // a rounded one reads as a finished, shareable sticker/card regardless of what
-    // background it lands on (kept transparent outside the rounded rect for that reason).
-    const img = new Image();
-    img.onload = () => {
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = OUT; finalCanvas.height = OUT;
-      const fctx = finalCanvas.getContext('2d');
-      const radius = OUT * 0.05;
-      fctx.beginPath();
-      fctx.moveTo(radius, 0);
-      fctx.arcTo(OUT, 0, OUT, OUT, radius);
-      fctx.arcTo(OUT, OUT, 0, OUT, radius);
-      fctx.arcTo(0, OUT, 0, 0, radius);
-      fctx.arcTo(0, 0, OUT, 0, radius);
-      fctx.closePath();
-      fctx.clip();
-      fctx.drawImage(img, 0, 0);
-      finalCanvas.toBlob(async pngBlob => {
-        const file = new File([pngBlob], 'softer-blob-mark.png', {type:'image/png'});
-        // Where supported (Safari on Mac/iOS in particular) this opens the native share
-        // sheet directly - AirDrop, Messages, Mail, all right there - instead of leaving
-        // someone to go find the file in Downloads and share it manually themselves.
-        // Falls straight back to a plain download link everywhere else.
-        if(navigator.canShare && navigator.canShare({files:[file]})){
-          try{
-            await navigator.share({files:[file], title:'SOFTER'});
-            return;
-          } catch(err){
-            // user backed out of the share sheet, or it failed for some other reason -
-            // either way, still give them the file via a normal download.
+      if(!blob){
+        restore();
+        alert('Could not capture the canvas.');
+        return;
+      }
+
+      const snapshotUrl = URL.createObjectURL(blob);
+      restore();
+
+      // Rounded corners on the final file, while keeping the PNG 1:1.
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(snapshotUrl);
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = OUT; finalCanvas.height = OUT;
+        const fctx = finalCanvas.getContext('2d');
+        const radius = OUT * 0.05;
+        fctx.beginPath();
+        fctx.moveTo(radius, 0);
+        fctx.arcTo(OUT, 0, OUT, OUT, radius);
+        fctx.arcTo(OUT, OUT, 0, OUT, radius);
+        fctx.arcTo(0, OUT, 0, 0, radius);
+        fctx.arcTo(0, 0, OUT, 0, radius);
+        fctx.closePath();
+        fctx.clip();
+        fctx.drawImage(img, 0, 0);
+        finalCanvas.toBlob(async pngBlob => {
+          const file = new File([pngBlob], 'softer-blob-mark.png', {type:'image/png'});
+          if(navigator.canShare && navigator.canShare({files:[file]})){
+            try{
+              await navigator.share({files:[file], title:'SOFTER'});
+              return;
+            } catch(err){
+              // user backed out of the share sheet, or it failed for some other reason -
+              // either way, still give them the file via a normal download.
+            }
           }
-        }
-        const url = URL.createObjectURL(pngBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'softer-blob-mark.png';
-        a.click();
-        setTimeout(()=>URL.revokeObjectURL(url), 1000);
-      }, 'image/png');
-    };
-    img.src = dataUrl;
+          const url = URL.createObjectURL(pngBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'softer-blob-mark.png';
+          a.click();
+          setTimeout(()=>URL.revokeObjectURL(url), 1000);
+        }, 'image/png');
+      };
+      img.src = snapshotUrl;
+    }, 'image/png');
   }
 
   document.getElementById('downloadPngBtn').addEventListener('click', exportPNG);
